@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Hero from "./components/ui/Hero";
+import LivePrices from './components/ui/liveprices';
 
 
 
@@ -11,6 +12,7 @@ function HomePage() {
      <main>
         <div className="relative min-h-[60vh]">
           <Hero />
+          <LivePrices />
         </div>
         
       </main>
