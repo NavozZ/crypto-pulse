@@ -4,6 +4,8 @@ import './index.css'
 import HomePage from './HomePage'
 import RootLayout from './components/layouts/root-layout.page';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Register from './pages/Register';
+import Login from './pages/Login';
 
 
 createRoot(document.getElementById('root')).render(
@@ -14,6 +16,8 @@ createRoot(document.getElementById('root')).render(
           <Routes>
             <Route path="/" element={<RootLayout />}>
               <Route index element={<HomePage/>} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<Login />} />
               
               </Route>
             
