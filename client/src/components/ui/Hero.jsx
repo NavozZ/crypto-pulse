@@ -25,7 +25,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <section className="relative w-full min-h-screen overflow-hidden bg-gradient-to-br from-[#0a001a] via-[#120024] to-[#1a0033] flex items-center">
+    <section className="relative w-full min-h-screen overflow-hidden bg-linear-to-br from-[#0a001a] via-[#120024] to-[#1a0033] flex items-center">
 
       {/* 🎥 Video Background (optional) */}
       {Bgvideo && (
@@ -64,7 +64,7 @@ const Hero = () => {
           transition={{ duration: 1 }}
         >
           <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-            <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent animate-pulse">
+            <span className="bg-linear-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent animate-pulse">
               AI-Powered
             </span>
             <br />

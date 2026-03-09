@@ -94,7 +94,7 @@ const Dashboard = () => {
         {/* Asset Info */}
         <div className="flex items-center gap-4">
           <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold shadow-lg flex-shrink-0"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold shadow-lg shrink-0"
             style={{ backgroundColor: selectedAsset.color + "33", border: `1px solid ${selectedAsset.color}55` }}
           >
             <span style={{ color: selectedAsset.color }}>{selectedAsset.icon}</span>
@@ -203,7 +203,7 @@ const Dashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center gap-2 text-xs text-purple-300 bg-purple-500/10 border border-purple-500/30 rounded-xl px-4 py-2.5"
             >
-              <Activity size={14} className="flex-shrink-0" />
+              <Activity size={14} className="shrink-0" />
               <span>
                 <strong>Facebook Prophet</strong> forecast active — 14-day price projection with upper/lower confidence intervals displayed in purple.
               </span>
@@ -215,7 +215,7 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="relative backdrop-blur-xl bg-white/[0.03] border border-white/10 rounded-2xl p-4 shadow-2xl overflow-hidden"
+            className="relative backdrop-blur-xl bg-white/3 border border-white/10 rounded-2xl p-4 shadow-2xl overflow-hidden"
           >
             {/* Subtle glow */}
             <div
@@ -226,7 +226,7 @@ const Dashboard = () => {
             />
 
             {error ? (
-              <div className="h-[420px] flex flex-col items-center justify-center gap-3 text-red-400">
+              <div className="h-105 flex flex-col items-center justify-center gap-3 text-red-400">
                 <span className="text-4xl">⚠</span>
                 <p className="text-sm">{error}</p>
                 <button
@@ -253,7 +253,7 @@ const Dashboard = () => {
         </main>
 
         {/*  Right Sidebar  */}
-        <aside className="w-72 p-4 space-y-4 overflow-y-auto border-l border-white/10 hidden xl:flex xl:flex-col flex-shrink-0">
+        <aside className="w-72 p-4 space-y-4 overflow-y-auto border-l border-white/10 hidden xl:flex xl:flex-col shrink-0">
 
           {/* VADER Sentiment Gauge */}
           <SentimentGauge asset={selectedAsset} />
@@ -263,7 +263,7 @@ const Dashboard = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="backdrop-blur-xl bg-white/[0.03] border border-white/10 rounded-2xl p-4"
+            className="backdrop-blur-xl bg-white/3 border border-white/10 rounded-2xl p-4"
           >
             <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
               <BarChart2 size={15} className="text-purple-400" />
@@ -295,7 +295,7 @@ const Dashboard = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
-            className="backdrop-blur-xl bg-white/[0.03] border border-white/10 rounded-2xl p-4 flex-1"
+            className="backdrop-blur-xl bg-white/3 border border-white/10 rounded-2xl p-4 flex-1"
           >
             <h3 className="text-sm font-semibold text-gray-300 mb-4">
               Quick Switch
@@ -312,7 +312,7 @@ const Dashboard = () => {
                   }`}
                 >
                   <span
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0"
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
                     style={{ backgroundColor: asset.color + "33", color: asset.color }}
                   >
                     {asset.icon}

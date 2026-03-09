@@ -30,7 +30,7 @@ const Navigation = () => {
     <nav className="fixed top-0 left-0 w-full z-50 backdrop-blur-xl bg-black/40 border-b border-white/10">
 
       {/* Gradient top line */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500" />
+      <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-purple-500 via-pink-500 to-blue-500" />
 
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 
@@ -77,7 +77,7 @@ const Navigation = () => {
           ) : (
             <Link
               to="/register"
-              className="relative inline-flex items-center justify-center px-6 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg hover:shadow-[0_0_30px_rgba(168,85,247,0.8)] transition"
+              className="relative inline-flex items-center justify-center px-6 py-2.5 rounded-xl font-semibold text-white bg-linear-to-r from-purple-500 to-pink-500 shadow-lg hover:shadow-[0_0_30px_rgba(168,85,247,0.8)] transition"
             >
               Get Started
             </Link>
@@ -135,7 +135,7 @@ const Navigation = () => {
             <Link
               to="/register"
               onClick={() => setOpen(false)}
-              className="mt-2 inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg"
+              className="mt-2 inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold text-white bg-linear-to-r from-purple-500 to-pink-500 shadow-lg"
             >
               Get Started
             </Link>
