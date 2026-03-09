@@ -5,6 +5,7 @@ import Bgvideo from "@/assets/bgvideo.mp4";
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
 import { ReactTyped } from "react-typed";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   const particlesInit = async (main) => {
@@ -68,9 +69,12 @@ const Hero = () => {
 />
           </h1>
 
-          <button className="mt-8 px-6 py-3 rounded-xl border border-purple-500 text-white backdrop-blur-lg bg-white/5 hover:bg-purple-600 transition shadow-[0_0_20px_rgba(168,85,247,0.6)]">
+          <Link 
+            to="/dashboard" 
+            className="mt-8 inline-block px-8 py-3 rounded-xl border border-purple-500 text-white backdrop-blur-lg bg-white/5 hover:bg-purple-600 transition shadow-[0_0_20px_rgba(168,85,247,0.6)]"
+          >
             Get Started →
-          </button>
+          </Link>
         </motion.div>
 
         {/* 🪟 Right Glass Card */}
