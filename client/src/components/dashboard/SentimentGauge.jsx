@@ -92,7 +92,7 @@ const SentimentGauge = ({ asset, score = 0, label, postCount, sources, loading }
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.2 }}
-      className="backdrop-blur-xl bg-white/[0.03] border border-white/10 rounded-2xl p-4">
+      className="backdrop-blur-xl bg-white/3 border border-white/10 rounded-2xl p-4">
 
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-2">

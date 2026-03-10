@@ -127,7 +127,7 @@ const PriceChart = ({ data, forecastData, showForecast, loading, assetColor }) =
 
   if (loading) {
     return (
-      <div className="h-[420px] flex flex-col items-center justify-center gap-3">
+      <div className="h-105 flex flex-col items-center justify-center gap-3">
         <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
         <p className="text-xs text-gray-500">Loading chart data…</p>
       </div>
@@ -136,7 +136,7 @@ const PriceChart = ({ data, forecastData, showForecast, loading, assetColor }) =
 
   if (!data || data.length === 0) {
     return (
-      <div className="h-[420px] flex items-center justify-center text-gray-500 text-sm">
+      <div className="h-105 flex items-center justify-center text-gray-500 text-sm">
         No data available
       </div>
     );

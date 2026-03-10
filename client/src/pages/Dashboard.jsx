@@ -201,7 +201,7 @@ const Dashboard = () => {
           {showForecast && (
             <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
               className="flex items-center gap-2 text-xs text-purple-300 bg-purple-500/10 border border-purple-500/30 rounded-xl px-4 py-2.5">
-              <Activity size={14} className="flex-shrink-0" />
+              <Activity size={14} className="shrink-0" />
               <span>
                 {forecastLoading
                   ? "Facebook Prophet model running… this takes 10–20 seconds."
@@ -215,11 +215,11 @@ const Dashboard = () => {
 
           {/* Chart */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="relative backdrop-blur-xl bg-white/[0.03] border border-white/10 rounded-2xl p-4 shadow-2xl overflow-hidden">
+            className="relative backdrop-blur-xl bg-white/3 border border-white/10 rounded-2xl p-4 shadow-2xl overflow-hidden">
             <div className="absolute inset-0 rounded-2xl opacity-10 pointer-events-none"
               style={{ background: `radial-gradient(circle at 50% 100%, ${selectedAsset.color}40, transparent 60%)` }} />
             {error ? (
-              <div className="h-[420px] flex flex-col items-center justify-center gap-3 text-red-400">
+              <div className="h-105 flex flex-col items-center justify-center gap-3 text-red-400">
                 <span className="text-4xl">⚠</span>
                 <p className="text-sm">{error}</p>
                 <button onClick={fetchMarketData} className="text-xs text-purple-400 hover:underline">Retry</button>
@@ -239,7 +239,7 @@ const Dashboard = () => {
         </main>
 
         {/* Right Sidebar */}
-        <aside className="w-72 p-4 space-y-4 overflow-y-auto border-l border-white/10 hidden xl:flex xl:flex-col flex-shrink-0">
+        <aside className="w-72 p-4 space-y-4 overflow-y-auto border-l border-white/10 hidden xl:flex xl:flex-col shrink-0">
           <SentimentGauge
             asset={selectedAsset}
             score={sentimentData?.compound ?? 0}
@@ -251,7 +251,7 @@ const Dashboard = () => {
 
           {/* Macro placeholder */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
-            className="backdrop-blur-xl bg-white/[0.03] border border-white/10 rounded-2xl p-4">
+            className="backdrop-blur-xl bg-white/3 border border-white/10 rounded-2xl p-4">
             <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
               <BarChart2 size={15} className="text-purple-400" /> Macro Indicators
             </h3>
