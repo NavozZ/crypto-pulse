@@ -87,7 +87,7 @@ const AdminDashboard = () => {
               key={label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="backdrop-blur-xl bg-white/[0.03] border border-white/10 rounded-2xl p-6"
+              className="backdrop-blur-xl bg-white/3 border border-white/10 rounded-2xl p-6"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -106,7 +106,7 @@ const AdminDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="backdrop-blur-xl bg-white/[0.03] border border-white/10 rounded-2xl p-6"
+          className="backdrop-blur-xl bg-white/3 border border-white/10 rounded-2xl p-6"
         >
           <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
             <BarChart2 size={18} className="text-purple-400" /> System Components

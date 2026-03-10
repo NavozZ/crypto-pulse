@@ -7,12 +7,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Register        from "./pages/Register";
 import Login           from "./pages/Login";
 import Dashboard       from "./pages/Dashboard";
+import MacroPage       from "./pages/MacroPage";
 import AdminDashboard  from "./pages/AdminDashboard";
 
-// ── Route Guards ──────────────────────────────────────────────────────────
-
-// PrivateRoute: any logged-in user (role: "user" OR "admin")
-// Redirects to /login if no token found
 const PrivateRoute = ({ children }) => {
   const userInfo = localStorage.getItem("userInfo");
   return userInfo ? children : <Navigate to="/login" replace />;
