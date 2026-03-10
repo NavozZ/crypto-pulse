@@ -2,35 +2,22 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    username: {
-      type: String,
-      required: [true, "Please add a username"],
-      unique: true,
-      trim: true,
+    username: { type: String, required: true, unique: true, trim: true },
+    email:    { type: String, required: true, unique: true, lowercase: true },
+    password: { type: String, required: true },
+    watchlist: [{ type: String }],
+
+    // ── Role field ────────────────────────────────────────────────────
+    // "user"  → standard retail investor — access to /dashboard only
+    // "admin" → developer/admin         — access to /admin panel
+    // Default is "user" for all new registrations
+    role: {
+      type:    String,
+      enum:    ["user", "admin"],
+      default: "user",
     },
-    email: {
-      type: String,
-      required: [true, "Please add an email"],
-      unique: true,
-      match: [
-        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-        "Please add a valid email",
-      ],
-    },
-    password: {
-      type: String,
-      required: [true, "Please add a password"],
-      minlength: 6,
-    },
-    watchlist: [
-      {
-        type: String, // Storing coin IDs like 'bitcoin', 'ethereum'
-      },
-    ],
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const User = mongoose.model("User", userSchema);
