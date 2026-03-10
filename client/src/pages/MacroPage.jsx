@@ -10,7 +10,7 @@ import {
   createChart, ColorType, LineStyle, LineSeries,
 } from "lightweight-charts";
 
-// ── Indicator config ───────────────────────────────────────────────────────
+
 const INDICATORS = [
   {
     id:      "cpi",
@@ -50,7 +50,7 @@ const INDICATORS = [
   },
 ];
 
-// ── Mini Line Chart ────────────────────────────────────────────────────────
+
 const MiniChart = ({ data, color }) => {
   const ref = useRef(null);
   const chartRef = useRef(null);
@@ -87,7 +87,7 @@ const MiniChart = ({ data, color }) => {
   return <div ref={ref} className="w-full" />;
 };
 
-// ── Full Line Chart ────────────────────────────────────────────────────────
+
 const MacroChart = ({ data, color, label, unit }) => {
   const ref      = useRef(null);
   const chartRef = useRef(null);
@@ -139,7 +139,7 @@ const MacroChart = ({ data, color, label, unit }) => {
   return <div ref={ref} className="w-full" />;
 };
 
-// ── MacroPage ──────────────────────────────────────────────────────────────
+
 const MacroPage = () => {
   const navigate  = useNavigate();
   const [userInfo, setUserInfo]   = useState(null);
@@ -244,7 +244,7 @@ const MacroPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.08 }}
                 onClick={() => setSelected(ind.id)}
-                className={`cursor-pointer backdrop-blur-xl bg-white/[0.03] border rounded-2xl p-4 transition ${
+                className={`cursor-pointer backdrop-blur-xl bg-white/3 border rounded-2xl p-4 transition ${
                   isActive ? "border-purple-500/60 shadow-[0_0_20px_rgba(168,85,247,0.2)]" : "border-white/10 hover:border-white/20"
                 }`}
               >
@@ -289,7 +289,7 @@ const MacroPage = () => {
             key={selected}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="backdrop-blur-xl bg-white/[0.03] border border-white/10 rounded-2xl p-6"
+            className="backdrop-blur-xl bg-white/3 border border-white/10 rounded-2xl p-6"
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
@@ -320,7 +320,7 @@ const MacroPage = () => {
             </div>
 
             {loading ? (
-              <div className="h-[300px] flex items-center justify-center">
+              <div className="h-75 flex items-center justify-center">
                 <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : selectedData.length > 0 ? (
@@ -331,7 +331,7 @@ const MacroPage = () => {
                 unit={selectedIndicator.unit}
               />
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
+              <div className="h-75 flex items-center justify-center text-gray-500 text-sm">
                 No data available
               </div>
             )}
@@ -343,7 +343,7 @@ const MacroPage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="backdrop-blur-xl bg-white/[0.02] border border-white/5 rounded-2xl p-5"
+          className="backdrop-blur-xl bg-white/3 border border-white/5 rounded-2xl p-5"
         >
           <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
             <ArrowUpDown size={14} className="text-purple-400" />
@@ -356,7 +356,7 @@ const MacroPage = () => {
               { ind: "DXY ↑",          effect: "Bearish for crypto",  note: "Strong USD → crypto priced lower in USD terms",         color: "red"    },
               { ind: "Unemployment ↑", effect: "Mixed signal",        note: "May trigger Fed rate cuts → potentially bullish",       color: "yellow" },
             ].map(({ ind, effect, note, color }) => (
-              <div key={ind} className="bg-white/[0.02] rounded-xl p-4 border border-white/5">
+              <div key={ind} className="bg-white/2 rounded-xl p-4 border border-white/5">
                 <p className="text-sm font-semibold text-white mb-1">{ind}</p>
                 <p className={`text-xs font-semibold mb-2 ${color === "red" ? "text-red-400" : "text-yellow-400"}`}>
                   {effect}
