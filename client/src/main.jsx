@@ -18,19 +18,13 @@ const PrivateRoute = ({ children }) => {
   return userInfo ? children : <Navigate to="/login" replace />;
 };
 
-// AdminRoute: only allows role: "admin"
-// Redirects non-admins to /dashboard, unauthenticated to /login
 const AdminRoute = ({ children }) => {
   const raw = localStorage.getItem("userInfo");
   if (!raw) return <Navigate to="/login" replace />;
   const userInfo = JSON.parse(raw);
-  return userInfo.role === "admin"
-    ? children
-    : <Navigate to="/dashboard" replace />;
+  return userInfo.role === "admin" ? children : <Navigate to="/dashboard" replace />;
 };
 
-// AlreadyAuth: redirect logged-in users away from /login and /register
-// Prevents going back to login page after already authenticated
 const AlreadyAuth = ({ children }) => {
   const raw = localStorage.getItem("userInfo");
   if (!raw) return children;
@@ -40,38 +34,20 @@ const AlreadyAuth = ({ children }) => {
     : <Navigate to="/dashboard" replace />;
 };
 
-// ── App Routes ────────────────────────────────────────────────────────────
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
-
-        {/* ── Public routes (shared Navigation via RootLayout) ── */}
         <Route path="/" element={<RootLayout />}>
           <Route index element={<HomePage />} />
-
-          {/* Redirect to dashboard if already logged in */}
-          <Route path="register" element={
-            <AlreadyAuth><Register /></AlreadyAuth>
-          } />
-          <Route path="login" element={
-            <AlreadyAuth><Login /></AlreadyAuth>
-          } />
+          <Route path="register" element={<AlreadyAuth><Register /></AlreadyAuth>} />
+          <Route path="login"    element={<AlreadyAuth><Login /></AlreadyAuth>} />
         </Route>
 
-        {/* ── Protected: regular user dashboard ── */}
-        <Route path="/dashboard" element={
-          <PrivateRoute><Dashboard /></PrivateRoute>
-        } />
-
-        {/* ── Protected: admin-only dashboard ── */}
-        <Route path="/admin" element={
-          <AdminRoute><AdminDashboard /></AdminRoute>
-        } />
-
-        {/* ── Catch-all: redirect unknown paths to home ── */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-
+        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="/macro"     element={<PrivateRoute><MacroPage /></PrivateRoute>} />
+        <Route path="/admin"     element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="*"          element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
