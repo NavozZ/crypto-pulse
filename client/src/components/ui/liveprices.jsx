@@ -1,45 +1,66 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
 
-const priceData = [
-  {
-    name: "Bitcoin",
-    symbol: "BTC",
-    price: "$20,788",
-    change: "+0.25%",
-    isPositive: true,
-    icon: "₿",
-    color: "#F7931A",
-  },
-  {
-    name: "Litecoin",
-    symbol: "LTC",
-    price: "$11,657",
-    change: "-0.18%",
-    isPositive: false,
-    icon: "Ł",
-    color: "#345D9D",
-  },
-  {
-    name: "Ethereum",
-    symbol: "ETH",
-    price: "$21,543",
-    change: "+1.56%",
-    isPositive: true,
-    icon: "Ξ",
-    color: "#627EEA",
-  },
+// ── CoinGecko public API — no auth needed for homepage ────────────────────
+const COINS = [
+  { id: "bitcoin",  symbol: "BTC", name: "Bitcoin",  icon: "₿", color: "#F7931A" },
+  { id: "ethereum", symbol: "ETH", name: "Ethereum", icon: "Ξ", color: "#627EEA" },
+  { id: "solana",   symbol: "SOL", name: "Solana",   icon: "◎", color: "#9945FF" },
+  { id: "binancecoin", symbol: "BNB", name: "BNB",   icon: "⬡", color: "#F3BA2F" },
+  { id: "ripple",   symbol: "XRP", name: "XRP",      icon: "✕", color: "#346AA9" },
+  { id: "cardano",  symbol: "ADA", name: "Cardano",  icon: "₳", color: "#0033AD" },
 ];
 
+const formatPrice = (price) => {
+  if (!price) return "—";
+  if (price >= 1000) return "$" + price.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  if (price >= 1)    return "$" + price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return "$" + price.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+};
+
+const formatCap = (cap) => {
+  if (!cap) return "—";
+  if (cap >= 1e12) return "$" + (cap / 1e12).toFixed(2) + "T";
+  if (cap >= 1e9)  return "$" + (cap / 1e9).toFixed(1)  + "B";
+  return "$" + (cap / 1e6).toFixed(0) + "M";
+};
+
 const LivePrices = () => {
+  const [prices, setPrices]   = useState({});
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  const fetchPrices = async () => {
+    try {
+      const ids = COINS.map(c => c.id).join(",");
+      const res = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`,
+        { headers: { "Accept": "application/json" } }
+      );
+      if (!res.ok) throw new Error("CoinGecko rate limited");
+      const data = await res.json();
+      setPrices(data);
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.warn("LivePrices fetch error:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPrices();
+    // Refresh every 60 seconds — respects CoinGecko free tier rate limits
+    const interval = setInterval(fetchPrices, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <section className="relative bg-gradient-to-b from-[#0b0819] to-[#06040f] py-20 px-6 text-white overflow-hidden">
-      
-      {/* Glow Background */}
+    <section className="relative bg-linear-to-b from-[#0b0819] to-[#06040f] py-20 px-6 text-white overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(168,85,247,0.15),transparent_40%),radial-gradient(circle_at_80%_80%,rgba(59,130,246,0.15),transparent_40%)]" />
 
       <div className="relative max-w-7xl mx-auto">
-        
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -47,89 +68,117 @@ const LivePrices = () => {
           transition={{ duration: 0.8 }}
           className="flex flex-col md:flex-row md:items-center md:justify-between mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Live <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Market Prices</span>
-          </h2>
-          <p className="text-gray-400 mt-3 md:mt-0 text-sm max-w-md">
-            Real-time crypto insights powered by AI analytics for smarter trading decisions.
-          </p>
+          <div>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              Live <span className="bg-linear-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Market Prices</span>
+            </h2>
+            <p className="text-gray-400 mt-2 text-sm">Powered by CoinGecko — updated every 60 seconds</p>
+          </div>
+          <div className="flex items-center gap-3 mt-4 md:mt-0">
+            {lastUpdated && (
+              <span className="text-xs text-gray-500">
+                Updated {lastUpdated.toLocaleTimeString()}
+              </span>
+            )}
+            <button
+              onClick={fetchPrices}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition text-gray-400 hover:text-white"
+            >
+              <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+            </button>
+            <span className="flex items-center gap-1.5 text-xs text-green-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+              Live
+            </span>
+          </div>
         </motion.div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {priceData.map((coin, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: index * 0.15 }}
-              whileHover={{ scale: 1.03 }}
-              className="relative group"
-            >
-              {/* Gradient Border */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/40 to-pink-500/40 blur opacity-0 group-hover:opacity-100 transition" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {COINS.map((coin, index) => {
+            const data     = prices[coin.id];
+            const price    = data?.usd;
+            const change   = data?.usd_24h_change;
+            const cap      = data?.usd_market_cap;
+            const positive = change >= 0;
 
-              {/* Card */}
-              <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl">
-                
-                {/* Top */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shadow-lg"
-                      style={{ backgroundColor: coin.color }}
-                    >
-                      {coin.icon}
+            return (
+              <motion.div
+                key={coin.id}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: index * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+                className="relative group cursor-default"
+              >
+                <div className="absolute inset-0 rounded-2xl bg-linear-to-r from-purple-500/30 to-pink-500/30 blur opacity-0 group-hover:opacity-100 transition duration-300" />
+
+                <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl">
+                  {/* Top row */}
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl font-bold shadow-lg"
+                        style={{ backgroundColor: coin.color + "33", border: `1px solid ${coin.color}66` }}>
+                        <span style={{ color: coin.color }}>{coin.icon}</span>
+                      </div>
+                      <div>
+                        <p className="font-semibold">{coin.name}</p>
+                        <p className="text-xs text-gray-400 uppercase tracking-wider">{coin.symbol}/USD</p>
+                      </div>
                     </div>
+
+                    {loading || !change ? (
+                      <div className="w-16 h-6 bg-white/10 rounded-full animate-pulse" />
+                    ) : (
+                      <span className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                        positive ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"
+                      }`}>
+                        {positive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                        {positive ? "+" : ""}{change?.toFixed(2)}%
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Sparkline (animated) */}
+                  <div className="mb-5">
+                    <svg viewBox="0 0 100 30" className="w-full h-8">
+                      <path
+                        d={positive
+                          ? "M0 25 Q 20 15, 40 18 T 70 8 T 100 12"
+                          : "M0 10 Q 20 18, 40 14 T 70 22 T 100 18"}
+                        fill="none"
+                        stroke={positive ? "#4ade80" : "#f87171"}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        opacity="0.8"
+                      />
+                    </svg>
+                  </div>
+
+                  {/* Price + Cap */}
+                  <div className="flex items-end justify-between">
                     <div>
-                      <p className="font-semibold text-lg">{coin.name}</p>
-                      <p className="text-xs text-gray-400 uppercase tracking-wider">{coin.symbol}</p>
+                      <p className="text-xs text-gray-400 mb-0.5">Current Price</p>
+                      {loading || !price ? (
+                        <div className="w-28 h-7 bg-white/10 rounded animate-pulse" />
+                      ) : (
+                        <p className="text-2xl font-bold">{formatPrice(price)}</p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-400 mb-0.5">Market Cap</p>
+                      {loading || !cap ? (
+                        <div className="w-16 h-4 bg-white/10 rounded animate-pulse" />
+                      ) : (
+                        <p className="text-sm font-semibold text-gray-300">{formatCap(cap)}</p>
+                      )}
                     </div>
                   </div>
-
-                  <span
-                    className={`text-sm font-semibold px-3 py-1 rounded-full ${
-                      coin.isPositive
-                        ? "bg-green-500/10 text-green-400"
-                        : "bg-red-500/10 text-red-400"
-                    }`}
-                  >
-                    {coin.change}
-                  </span>
                 </div>
-
-                {/* Sparkline */}
-                <div className="mb-6">
-                  <svg viewBox="0 0 100 30" className="w-full h-10">
-                    <path
-                      d={
-                        coin.isPositive
-                          ? "M0 20 Q 15 5, 30 20 T 60 10 T 100 15"
-                          : "M0 10 Q 15 25, 30 10 T 60 20 T 100 15"
-                      }
-                      fill="none"
-                      stroke={coin.isPositive ? "#4ade80" : "#f87171"}
-                      strokeWidth="2"
-                    />
-                  </svg>
-                </div>
-
-                {/* Bottom */}
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm">Current Price</p>
-                    <p className="text-2xl font-bold">{coin.price}</p>
-                  </div>
-
-                  <button className="text-sm text-purple-400 hover:text-purple-300 transition">
-                    View →
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
-
       </div>
     </section>
   );
