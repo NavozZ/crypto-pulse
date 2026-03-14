@@ -1,0 +1,16 @@
+{
+  "coin_id": "bitcoin",
+  "holdout_days": 30,
+  "train_points": 151,
+  "test_points": 30,
+  "train_start": "2025-09-16",
+  "train_end": "2026-02-13",
+  "test_start": "2026-02-14",
+  "test_end": "2026-03-14",
+  "mean_actual_usd": 68122.95,
+  "mae_usd": 12284.72,
+  "rmse_usd": 14648.27,
+  "mape_pct": 17.877,
+  "relative_mae_pct": 18.03,
+  "grade": "Acceptable (< 20% error \u2014 typical for crypto)"
+}
