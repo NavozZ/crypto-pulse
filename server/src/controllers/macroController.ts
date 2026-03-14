@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 
 const FRED_BASE = "https://api.stlouisfed.org/fred/series/observations";
-const FRED_KEY  = process.env.FRED_API_KEY || "";
 
-// ── Cache (1 hour TTL — macro data changes slowly) ─────────────────────────
+const getFredKey = () => process.env.FRED_API_KEY || "";
+
 interface CacheEntry { data: unknown; expiry: number; }
 const cache = new Map<string, CacheEntry>();
 const getFromCache = (key: string) => {
@@ -14,11 +14,7 @@ const getFromCache = (key: string) => {
 const setCache = (key: string, data: unknown) =>
   cache.set(key, { data, expiry: Date.now() + 60 * 60 * 1000 }); // 1hr TTL
 
-// ── FRED Series IDs ────────────────────────────────────────────────────────
-// CPIAUCSL  — Consumer Price Index (All Urban, All Items) — monthly
-// FEDFUNDS  — Federal Funds Effective Rate — monthly
-// DTWEXBGS  — US Dollar Index (DXY trade-weighted) — daily
-// UNRATE    — US Unemployment Rate — monthly
+
 const INDICATORS: Record<string, { series: string; label: string; unit: string; freq: string }> = {
   cpi:          { series: "CPIAUCSL", label: "CPI (Consumer Price Index)", unit: "Index",   freq: "m" },
   fed_rate:     { series: "FEDFUNDS", label: "Fed Funds Rate",             unit: "%",        freq: "m" },
@@ -26,14 +22,13 @@ const INDICATORS: Record<string, { series: string; label: string; unit: string; 
   unemployment: { series: "UNRATE",   label: "US Unemployment Rate",       unit: "%",        freq: "m" },
 };
 
-// ── Helper: fetch one FRED series ─────────────────────────────────────────
 const fetchSeries = async (seriesId: string, limit = 60) => {
-  const url = `${FRED_BASE}?series_id=${seriesId}&api_key=${FRED_KEY}&file_type=json&sort_order=desc&limit=${limit}`;
+  const key = getFredKey();
+  const url = `${FRED_BASE}?series_id=${seriesId}&api_key=${key}&file_type=json&sort_order=desc&limit=${limit}`;
   const res  = await fetch(url, { headers: { Accept: "application/json" } });
   if (!res.ok) throw new Error(`FRED API error ${res.status} for ${seriesId}`);
   const json = await res.json() as { observations: { date: string; value: string }[] };
 
-  // Transform → { date, value } array, filter out missing values (".")
   return json.observations
     .filter(o => o.value !== ".")
     .map(o => ({
@@ -42,10 +37,10 @@ const fetchSeries = async (seriesId: string, limit = 60) => {
       // Also provide as Unix timestamp for chart overlay
       time:  Math.floor(new Date(o.date).getTime() / 1000),
     }))
-    .reverse(); // oldest first for charts
+    .reverse(); 
 };
 
-// ── GET /api/macro/indicators ──────────────────────────────────────────────
+
 // Returns all 4 indicators in one call for the macro dashboard
 export const getAllIndicators = async (req: Request, res: Response) => {
   const cacheKey = "macro:all";
@@ -54,9 +49,9 @@ export const getAllIndicators = async (req: Request, res: Response) => {
 
   try {
     const [cpi, fedRate, dxy, unemployment] = await Promise.all([
-      fetchSeries("CPIAUCSL", 36),   // 3 years monthly
+      fetchSeries("CPIAUCSL", 36),   
       fetchSeries("FEDFUNDS",  36),
-      fetchSeries("DTWEXBGS",  90),  // 90 days for DXY
+      fetchSeries("DTWEXBGS",  90),  
       fetchSeries("UNRATE",    36),
     ]);
 
@@ -87,7 +82,7 @@ export const getAllIndicators = async (req: Request, res: Response) => {
   }
 };
 
-// ── GET /api/macro/:indicator ──────────────────────────────────────────────
+
 // Returns a single indicator — used for chart overlay on price chart
 export const getSingleIndicator = async (req: Request, res: Response) => {
   const { indicator } = req.params;
