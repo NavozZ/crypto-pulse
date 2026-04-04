@@ -1,50 +1,42 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import HomePage       from "./HomePage";
-import RootLayout     from "./components/layouts/root-layout.page";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Register        from "./pages/Register";
-import Login           from "./pages/Login";
-import Dashboard       from "./pages/Dashboard";
-import MacroPage       from "./pages/MacroPage";
-import AdminDashboard  from "./pages/AdminDashboard";
 
-const PrivateRoute = ({ children }) => {
-  const userInfo = localStorage.getItem("userInfo");
-  return userInfo ? children : <Navigate to="/login" replace />;
-};
+import RootLayout     from "./components/layouts/root-layout.page";
+import HomePage       from "./HomePage";
+import Register       from "./pages/Register";
+import Login          from "./pages/Login";
+import Dashboard      from "./pages/Dashboard";
+import MacroPage      from "./pages/MacroPage";
+import AdminDashboard from "./pages/AdminDashboard";
+import LearningPage   from "./pages/LearningPage";
+import CourseViewer   from "./pages/CourseViewer";
 
-const AdminRoute = ({ children }) => {
-  const raw = localStorage.getItem("userInfo");
-  if (!raw) return <Navigate to="/login" replace />;
-  const userInfo = JSON.parse(raw);
-  return userInfo.role === "admin" ? children : <Navigate to="/dashboard" replace />;
-};
-
-const AlreadyAuth = ({ children }) => {
-  const raw = localStorage.getItem("userInfo");
-  if (!raw) return children;
-  const userInfo = JSON.parse(raw);
-  return userInfo.role === "admin"
-    ? <Navigate to="/admin" replace />
-    : <Navigate to="/dashboard" replace />;
-};
+import { PrivateRoute, AdminRoute, AlreadyAuth } from "./RouteGuards";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
+        {/* Public */}
         <Route path="/" element={<RootLayout />}>
           <Route index element={<HomePage />} />
           <Route path="register" element={<AlreadyAuth><Register /></AlreadyAuth>} />
           <Route path="login"    element={<AlreadyAuth><Login /></AlreadyAuth>} />
         </Route>
 
+        {/* Protected */}
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/macro"     element={<PrivateRoute><MacroPage /></PrivateRoute>} />
         <Route path="/admin"     element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-        <Route path="*"          element={<Navigate to="/" replace />} />
+
+        {/* Learning */}
+        <Route path="/learning"           element={<PrivateRoute><LearningPage /></PrivateRoute>} />
+        <Route path="/learning/:courseId" element={<PrivateRoute><CourseViewer /></PrivateRoute>} />
+
+        {/* Catch-all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
