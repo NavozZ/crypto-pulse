@@ -139,7 +139,7 @@ const PaymentModal = ({ isOpen, onClose, onSuccess, userInfo }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-100 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
         >
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
@@ -149,7 +149,7 @@ const PaymentModal = ({ isOpen, onClose, onSuccess, userInfo }) => {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-md bg-[#0a0018] border border-purple-500/30 rounded-2xl shadow-[0_0_60px_rgba(168,85,247,0.2)] overflow-hidden"
+            className="relative w-full max-w-md bg-[#0a0018] border border-purple-500/30 rounded-2xl shadow-[0_0_60px_rgba(168,85,247,0.2)] overflow-y-auto max-h-[90vh]"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
@@ -167,7 +167,7 @@ const PaymentModal = ({ isOpen, onClose, onSuccess, userInfo }) => {
               </button>
             </div>
 
-            <div className="p-6">
+            <div className="p-6 overflow-y-auto">
               {/* Pro features */}
               <div className="grid grid-cols-3 gap-3 mb-6">
                 {[

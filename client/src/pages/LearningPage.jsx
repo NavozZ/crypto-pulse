@@ -149,13 +149,22 @@ export default function LearningPage() {
     if (!info) { navigate("/login"); return; }
     setUserInfo(info);
 
-    // Fetch subscription status
+    // If localStorage already says "pro" — use it immediately
+    // Prevents re-locking when webhook hasn't fired yet
+    if (info.subscription === "pro") {
+      setSubscription("pro");
+    }
+
+    // Sync with server — but never downgrade a local "pro" to "free"
     axios.get(`${API_BASE}/api/stripe/status`, {
       headers: { Authorization: `Bearer ${info.token}` }
     }).then(({ data }) => {
-      setSubscription(data.subscription);
-      // Update localStorage with latest subscription
-      localStorage.setItem("userInfo", JSON.stringify({ ...info, subscription: data.subscription }));
+      if (data.subscription === "pro") {
+        setSubscription("pro");
+        localStorage.setItem("userInfo", JSON.stringify({ ...info, subscription: "pro" }));
+      } else if (info.subscription !== "pro") {
+        setSubscription(data.subscription);
+      }
     }).catch(() => setSubscription(info.subscription || "free"));
   }, [navigate]);
 
@@ -198,7 +207,7 @@ export default function LearningPage() {
     <div className="min-h-screen bg-[#050010] text-white">
 
       {/* Top bar */}
-      <div className="mt-16 sticky top-16 z-40 backdrop-blur-xl bg-black/50 border-b border-white/10 px-6 py-3 flex items-center justify-between">
+      <div className="sticky top-0 z-40 backdrop-blur-xl bg-black/80 border-b border-white/10 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm">
           <Link to="/" className="text-gray-500 hover:text-white transition flex items-center gap-1">
             <Home size={12} /> Home
@@ -232,7 +241,7 @@ export default function LearningPage() {
           <p className="text-xs font-mono tracking-widest text-purple-400 uppercase mb-3">CryptoPulse Learning Hub</p>
           <h1 className="text-4xl md:text-6xl font-black leading-tight mb-4">
             Master Crypto<br />
-            <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Technical Analysis</span>
+            <span className="bg-linear-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Technical Analysis</span>
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl">
             From beginner candlesticks to advanced Smart Money Concepts — structured courses
@@ -262,7 +271,7 @@ export default function LearningPage() {
             </div>
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
               onClick={() => setPaymentOpen(true)}
-              className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold shadow-[0_0_20px_rgba(168,85,247,0.4)] transition">
+              className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold shadow-[0_0_20px_rgba(168,85,247,0.4)] transition">
               <Zap size={15} /> Unlock Pro — $9.99
             </motion.button>
           </motion.div>
@@ -294,7 +303,7 @@ export default function LearningPage() {
                 transition={{ delay: i * 0.06 }}
                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
                 onClick={() => handleCourseClick(course)}
-                className={`relative cursor-pointer backdrop-blur-xl bg-white/[0.03] border rounded-2xl p-5 transition group ${
+                className={`relative cursor-pointer backdrop-blur-xl bg-white/3 border rounded-2xl p-5 transition group ${
                   accessible
                     ? "border-white/10 hover:border-purple-500/40 hover:shadow-[0_0_20px_rgba(168,85,247,0.1)]"
                     : "border-white/5 opacity-80 hover:opacity-100"

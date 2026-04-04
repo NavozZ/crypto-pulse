@@ -35,7 +35,7 @@ export default function CourseViewer() {
     const info = JSON.parse(localStorage.getItem("userInfo") || "null");
     if (!info) { navigate("/login"); return; }
     setUserInfo(info);
-  }, [navigate]);
+  }, [navigate, courseId]);  // re-read on courseId change too
 
   if (!userInfo) return null;
 
