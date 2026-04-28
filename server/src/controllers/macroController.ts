@@ -56,11 +56,14 @@ export const getAllIndicators = async (req: Request, res: Response) => {
     ]);
 
     // Latest values for summary cards
+    const last = (arr: any[]) => arr[arr.length - 1];
+    const prev = (arr: any[]) => arr[arr.length - 2];
+
     const latest = {
-      cpi:          { value: cpi.at(-1)?.value,          prev: cpi.at(-2)?.value          },
-      fed_rate:     { value: fedRate.at(-1)?.value,       prev: fedRate.at(-2)?.value       },
-      dxy:          { value: dxy.at(-1)?.value,           prev: dxy.at(-2)?.value           },
-      unemployment: { value: unemployment.at(-1)?.value,  prev: unemployment.at(-2)?.value  },
+      cpi:          { value: last(cpi)?.value,          prev: prev(cpi)?.value          },
+      fed_rate:     { value: last(fedRate)?.value,       prev: prev(fedRate)?.value       },
+      dxy:          { value: last(dxy)?.value,           prev: prev(dxy)?.value           },
+      unemployment: { value: last(unemployment)?.value,  prev: prev(unemployment)?.value  },
     };
 
     const result = {

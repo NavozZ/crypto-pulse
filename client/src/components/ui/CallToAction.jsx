@@ -5,10 +5,10 @@ import { ArrowRight, BrainCircuit } from "lucide-react";
 
 const CallToAction = () => {
   return (
-    <section className="relative bg-gradient-to-b from-[#06040f] to-[#0a001a] py-28 px-6 text-white overflow-hidden">
+    <section className="relative bg-linear-to-b from-[#06040f] to-[#0a001a] py-28 px-6 text-white overflow-hidden">
       {/* Glow orbs */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[300px] h-[300px] bg-pink-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-75 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-75 h-75 bg-pink-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative max-w-4xl mx-auto text-center">
         <motion.div
@@ -23,7 +23,7 @@ const CallToAction = () => {
 
           <h2 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
             Stop Guessing.{" "}
-            <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
               Start Analysing.
             </span>
           </h2>

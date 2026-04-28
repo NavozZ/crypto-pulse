@@ -50,7 +50,7 @@ const featureData = [
 
 const Features = () => {
   return (
-    <section className="relative bg-gradient-to-b from-[#0b0819] to-[#06040f] py-28 px-6 text-white overflow-hidden">
+    <section className="relative bg-linear-to-b from-[#0b0819] to-[#06040f] py-28 px-6 text-white overflow-hidden">
 
       {/* Glow Background */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(168,85,247,0.15),transparent_40%),radial-gradient(circle_at_80%_80%,rgba(59,130,246,0.15),transparent_40%)]" />
@@ -65,7 +65,7 @@ const Features = () => {
           className="mb-20 max-w-2xl"
         >
           <h2 className="text-4xl md:text-5xl font-bold leading-tight">
-            Platform <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Features</span>
+            Platform <span className="bg-linear-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Features</span>
           </h2>
           <p className="text-gray-400 mt-4">
             CryptoPulse delivers enterprise-grade AI tools designed to transform
@@ -87,7 +87,7 @@ const Features = () => {
                 className="group relative"
               >
                 {/* Gradient Glow Border */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/40 to-pink-500/40 blur opacity-0 group-hover:opacity-100 transition" />
+                <div className="absolute inset-0 rounded-2xl bg-linear-to-r from-purple-500/40 to-pink-500/40 blur opacity-0 group-hover:opacity-100 transition" />
 
                 {/* Card */}
                 <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 h-full shadow-xl">
