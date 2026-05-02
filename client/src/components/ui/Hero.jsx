@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 // section falls back to the gradient background (file was excluded from upload)
 let Bgvideo = null;
 try {
-  Bgvideo = new URL("@/assets/bgvideo.mp4", import.meta.url).href;
+  Bgvideo = new URL("@assets/Bgvideo.gif", import.meta.url).href;
 } catch {
   // file not present — video background disabled gracefully
 }
