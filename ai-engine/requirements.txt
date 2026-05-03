@@ -2,7 +2,7 @@ flask==3.0.3
 gunicorn==22.0.0
 prophet==1.1.5
 vaderSentiment==3.3.2
-pandas==2.1.4
+pandas==2.2.2
 numpy==1.26.4
 requests==2.31.0
 cmdstanpy>=1.0.4
