@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { savePrediction } from "../utils/forecastHistoryService";
 
 const ALLOWED_COINS = ["bitcoin", "ethereum", "solana", "binancecoin", "ripple", "cardano"];
 
@@ -23,7 +24,25 @@ export const getForecast = async (req: Request, res: Response) => {
       return res.status(500).json({ message: "AI engine error", error: err.error });
     }
 
-    const data = await response.json();
+    const data = await response.json() as any;
+    
+    // ── Save prediction to history database ──────────────────────────────
+    // Extract the first forecast point (next day prediction)
+    if (data.forecast && data.forecast.length > 0) {
+      const firstPrediction = data.forecast[0];
+      try {
+        await savePrediction(
+          coinId,
+          firstPrediction.yhat,
+          data.forecast_days || 14,
+          data.model || "facebook_prophet"
+        );
+      } catch (err) {
+        // Log error but don't fail the response
+        console.warn("⚠️ Could not save prediction to history:", (err as Error).message);
+      }
+    }
+
     return res.json(data);
 
   } catch (error) {
