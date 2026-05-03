@@ -9,7 +9,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { X, Shield, Zap, BookOpen, Check, Loader2 } from "lucide-react";
 import axios from "axios";
-import { API_BASE } from "../api";
+import { API_BASE } from "../api.js";
 
 // Load Stripe — publishable key from env
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");

@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { fetchCoinGeckoData, fetchBinanceData } from "../utils/marketService.js";
+import * as cacheModule from "../utils/cache.js";
 
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
 
@@ -104,6 +106,83 @@ export const getOHLCData = async (req: Request, res: Response) => {
     return res.status(500).json({
       message: "Failed to fetch market data",
       error:   (error as Error).message,
+    });
+  }
+};
+
+// ─── GET /api/market/data?coin=bitcoin ──────────────────────────────────────
+export const getMarketData = async (req: Request, res: Response) => {
+  const { coin } = req.query;
+
+  // Validate coin parameter
+  if (!coin || typeof coin !== "string") {
+    return res.status(400).json({ message: "Missing or invalid 'coin' query parameter" });
+  }
+
+  const allowed = ["bitcoin", "ethereum", "solana", "binancecoin", "ripple", "cardano"];
+  if (!allowed.includes(coin)) {
+    return res.status(400).json({ message: "Invalid coin ID" });
+  }
+
+  const cacheKey = `market:${coin}`;
+  let isCached = false;
+
+  try {
+    // ── Check cache first ────────────────────────────────────────────
+    const cachedData = cacheModule.get(cacheKey);
+    if (cachedData) {
+      isCached = true;
+      return res.json({ ...cachedData, cached: true });
+    }
+
+    let data;
+    let source = "unknown";
+
+    // ── Try CoinGecko first ──────────────────────────────────────────
+    try {
+      data = await fetchCoinGeckoData(coin);
+      source = "coingecko";
+    } catch (coingeckoError) {
+      console.warn(`⚠️  CoinGecko failed for ${coin}, falling back to Binance`);
+
+      // ── Fallback to Binance ──────────────────────────────────────
+      const coinToBinanceMap: Record<string, string> = {
+        bitcoin: "BTCUSDT",
+        ethereum: "ETHUSDT",
+        solana: "SOLUSDT",
+        binancecoin: "BNBUSDT",
+        ripple: "XRPUSDT",
+        cardano: "ADAUSDT",
+      };
+
+      const binanceSymbol = coinToBinanceMap[coin];
+      if (!binanceSymbol) {
+        throw new Error("No Binance mapping for coin");
+      }
+
+      data = await fetchBinanceData(binanceSymbol);
+      source = "binance";
+    }
+
+    // ── Cache result for 5 minutes ───────────────────────────────────
+    const response = {
+      coin,
+      price: data.price,
+      change_24h: data.change_24h,
+      volume: data.volume,
+      source,
+      cached: false,
+    };
+
+    cacheModule.set(cacheKey, response, 300); // 5-minute TTL
+
+    return res.json(response);
+
+  } catch (error) {
+    console.error(`❌ Market data fetch failed for ${coin}:`, (error as Error).message);
+    return res.status(500).json({
+      message: "Failed to fetch market data from all sources",
+      error: (error as Error).message,
     });
   }
 };

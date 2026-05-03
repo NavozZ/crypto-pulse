@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
+import axios from "axios";
+import { API_BASE } from "../../api";
 
-// ── CoinGecko public API — no auth needed for homepage ────────────────────
 const COINS = [
   { id: "bitcoin",  symbol: "BTC", name: "Bitcoin",  icon: "₿", color: "#F7931A" },
   { id: "ethereum", symbol: "ETH", name: "Ethereum", icon: "Ξ", color: "#627EEA" },
@@ -29,21 +30,38 @@ const formatCap = (cap) => {
 const LivePrices = () => {
   const [prices, setPrices]   = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const fetchPrices = async () => {
     try {
-      const ids = COINS.map(c => c.id).join(",");
-      const res = await fetch(
-        `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`,
-        { headers: { "Accept": "application/json" } }
+      setError(null);
+      const priceData = {};
+
+      const fetchPromises = COINS.map((coin) =>
+        axios
+          .get(`${API_BASE}/api/market/data?coin=${coin.id}`)
+          .then((res) => {
+            priceData[coin.id] = {
+              usd: res.data.price,
+              usd_24h_change: res.data.change_24h,
+              usd_market_cap: res.data.volume,
+              source: res.data.source,
+              cached: res.data.cached,
+            };
+          })
+          .catch((err) => {
+            console.warn(`Failed to fetch ${coin.id}:`, err.message);
+            priceData[coin.id] = null;
+          })
       );
-      if (!res.ok) throw new Error("CoinGecko rate limited");
-      const data = await res.json();
-      setPrices(data);
+
+      await Promise.all(fetchPromises);
+      setPrices(priceData);
       setLastUpdated(new Date());
     } catch (err) {
-      console.warn("LivePrices fetch error:", err.message);
+      console.error("Error fetching prices:", err.message);
+      setError("Unable to fetch market prices. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -51,8 +69,7 @@ const LivePrices = () => {
 
   useEffect(() => {
     fetchPrices();
-    // Refresh every 60 seconds — respects CoinGecko free tier rate limits
-    const interval = setInterval(fetchPrices, 60000);
+    const interval = setInterval(fetchPrices, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -72,7 +89,7 @@ const LivePrices = () => {
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
               Live <span className="bg-linear-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Market Prices</span>
             </h2>
-            <p className="text-gray-400 mt-2 text-sm">Powered by CoinGecko — updated every 60 seconds</p>
+            <p className="text-gray-400 mt-2 text-sm">Powered by CryptoPulse Backend — updated every 30 seconds</p>
           </div>
           <div className="flex items-center gap-3 mt-4 md:mt-0">
             {lastUpdated && (
@@ -82,7 +99,8 @@ const LivePrices = () => {
             )}
             <button
               onClick={fetchPrices}
-              className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition text-gray-400 hover:text-white"
+              disabled={loading}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition text-gray-400 hover:text-white disabled:opacity-50"
             >
               <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
             </button>
@@ -93,12 +111,23 @@ const LivePrices = () => {
           </div>
         </motion.div>
 
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
+          >
+            {error}
+          </motion.div>
+        )}
+
         {/* Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {COINS.map((coin, index) => {
             const data     = prices[coin.id];
             const price    = data?.usd;
-            const change   = data?.usd_24h_change;
+            const change   = data?.usd_24h_change ?? 0;
             const cap      = data?.usd_market_cap;
             const positive = change >= 0;
 
@@ -127,7 +156,7 @@ const LivePrices = () => {
                       </div>
                     </div>
 
-                    {loading || !change ? (
+                    {loading || !data ? (
                       <div className="w-16 h-6 bg-white/10 rounded-full animate-pulse" />
                     ) : (
                       <span className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
@@ -155,19 +184,19 @@ const LivePrices = () => {
                     </svg>
                   </div>
 
-                  {/* Price + Cap */}
+                  {/* Price + Volume */}
                   <div className="flex items-end justify-between">
                     <div>
                       <p className="text-xs text-gray-400 mb-0.5">Current Price</p>
-                      {loading || !price ? (
+                      {loading || !data ? (
                         <div className="w-28 h-7 bg-white/10 rounded animate-pulse" />
                       ) : (
                         <p className="text-2xl font-bold">{formatPrice(price)}</p>
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-400 mb-0.5">Market Cap</p>
-                      {loading || !cap ? (
+                      <p className="text-xs text-gray-400 mb-0.5">24h Volume</p>
+                      {loading || !data ? (
                         <div className="w-16 h-4 bg-white/10 rounded animate-pulse" />
                       ) : (
                         <p className="text-sm font-semibold text-gray-300">{formatCap(cap)}</p>

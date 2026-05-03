@@ -6,7 +6,7 @@ import {
   LogOut, ArrowUpDown, DollarSign, Percent, Activity,
 } from "lucide-react";
 import axios from "axios";
-import { API_BASE } from "../api";
+import { API_BASE } from "../api.js";
 import {
   createChart, ColorType, LineStyle, LineSeries,
 } from "lightweight-charts";

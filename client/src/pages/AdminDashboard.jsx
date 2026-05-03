@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Shield, Users, Activity, LogOut, BarChart2, Brain, RefreshCw } from "lucide-react";
 import axios from "axios";
-import { API_BASE } from "../api";
+import { API_BASE } from "../api.js";
 
 const AdminDashboard = () => {
   const navigate  = useNavigate();

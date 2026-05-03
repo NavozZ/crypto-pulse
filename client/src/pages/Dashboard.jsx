@@ -13,7 +13,7 @@ import AssetSidebar       from "../components/dashboard/AssetSidebar";
 import StatsPanel         from "../components/dashboard/StatsPanel";
 import SentimentGauge     from "../components/dashboard/SentimentGauge";
 import TechnicalIndicators from "../components/dashboard/TechnicalIndicators";
-import { API_BASE } from "../api";
+import { API_BASE } from "../api.js";
 
 export const ASSETS = [
   { id: "bitcoin",     symbol: "BTC", name: "Bitcoin",  icon: "₿", color: "#F7931A" },
