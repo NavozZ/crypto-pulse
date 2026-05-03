@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import {
+import { API_BASE } from "../api";
   createChart, ColorType, LineStyle, LineSeries,
 } from "lightweight-charts";
 
@@ -159,7 +160,7 @@ const MacroPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.get("http://localhost:5000/api/macro/indicators", {
+      const { data } = await axios.get(`${API_BASE}/api/macro/indicators`, {
         headers: { Authorization: `Bearer ${userInfo.token}` },
       });
       setMacroData(data);

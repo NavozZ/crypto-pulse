@@ -12,6 +12,7 @@ import AssetSidebar       from "../components/dashboard/AssetSidebar";
 import StatsPanel         from "../components/dashboard/StatsPanel";
 import SentimentGauge     from "../components/dashboard/SentimentGauge";
 import TechnicalIndicators from "../components/dashboard/TechnicalIndicators";
+import { API_BASE } from "../api";
 
 export const ASSETS = [
   { id: "bitcoin",     symbol: "BTC", name: "Bitcoin",  icon: "₿", color: "#F7931A" },
@@ -57,7 +58,7 @@ const Dashboard = () => {
     setLoading(true); setError(null);
     try {
       const { data } = await axios.get(
-        `http://localhost:5000/api/market/ohlc/${selectedAsset.id}?days=${days}`,
+        `${API_BASE}/api/market/ohlc/${selectedAsset.id}?days=${days}`,
         { headers: { Authorization: `Bearer ${userInfo.token}` } }
       );
       setOhlcData(data.ohlc);
@@ -72,7 +73,7 @@ const Dashboard = () => {
     setForecastLoading(true);
     try {
       const { data } = await axios.get(
-        `http://localhost:5000/api/forecast/${selectedAsset.id}`,
+        `${API_BASE}/api/forecast/${selectedAsset.id}`,
         { headers: { Authorization: `Bearer ${userInfo.token}` } }
       );
       setForecastData(data.forecast);
@@ -85,7 +86,7 @@ const Dashboard = () => {
     setSentimentLoading(true);
     try {
       const { data } = await axios.get(
-        `http://localhost:5000/api/sentiment/${selectedAsset.id}`,
+        `${API_BASE}/api/sentiment/${selectedAsset.id}`,
         { headers: { Authorization: `Bearer ${userInfo.token}` } }
       );
       setSentimentData(data);

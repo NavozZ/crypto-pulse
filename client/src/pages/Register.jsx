@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { User, Mail, Lock, Loader2 } from "lucide-react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import { API_BASE } from "../api";
 
 const Register = () => {
   const [formData, setFormData] = useState({ username: "", email: "", password: "" });
@@ -16,7 +17,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post("http://localhost:5000/api/auth/register", formData);
+      const { data } = await axios.post(`${API_BASE}/api/auth/register`, formData);
 
       // Store user info (includes role) in localStorage
       localStorage.setItem("userInfo", JSON.stringify(data));

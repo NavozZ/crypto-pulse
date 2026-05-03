@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Mail, Lock, Loader2 } from "lucide-react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import { API_BASE } from "../api";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -16,7 +17,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post("http://localhost:5000/api/auth/login", formData);
+      const { data } = await axios.post(`${API_BASE}/api/auth/login`, formData);
 
       // Store full user info (includes role) for PrivateRoute + AdminRoute checks
       localStorage.setItem("userInfo", JSON.stringify(data));
