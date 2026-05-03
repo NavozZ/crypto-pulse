@@ -12,4 +12,8 @@ router.get("/ohlc/:coinId", protect, getOHLCData);
 // Protected — requires valid JWT Bearer token
 router.get("/data", protect, getMarketData);
 
+// GET /api/market/public/data?coin=bitcoin
+// Public endpoint for AI engine and external services (no auth required)
+router.get("/public/data", getMarketData);
+
 export default router;

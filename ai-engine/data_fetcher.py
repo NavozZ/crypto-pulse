@@ -35,7 +35,7 @@ def get_market_data(coin_id: str) -> Dict:
     Raises:
         ValueError: If API call fails or data is invalid
     """
-    url = f"{BACKEND_API_BASE}/api/market/data"
+    url = f"{BACKEND_API_BASE}/api/market/public/data"
     params = {"coin": coin_id}
     
     for attempt in range(MAX_RETRIES):
