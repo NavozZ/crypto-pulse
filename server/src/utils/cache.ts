@@ -3,25 +3,25 @@
  * Stores data with automatic expiration based on TTL
  */
 
-const cache = {};
+interface CacheEntry {
+  data: unknown;
+  expiry: number;
+}
+
+const cache: Record<string, CacheEntry> = {};
 
 /**
  * Set a value in cache with TTL
- * @param {string} key - Cache key
- * @param {*} data - Data to cache
- * @param {number} ttlSeconds - Time to live in seconds
  */
-export const set = (key, data, ttlSeconds) => {
+export const set = (key: string, data: unknown, ttlSeconds: number): void => {
   const expiry = Date.now() + ttlSeconds * 1000;
   cache[key] = { data, expiry };
 };
 
 /**
  * Get a value from cache
- * @param {string} key - Cache key
- * @returns {* | null} - Cached data if valid, null if expired or not found
  */
-export const get = (key) => {
+export const get = (key: string): unknown | null => {
   if (!(key in cache)) {
     return null;
   }
@@ -39,19 +39,16 @@ export const get = (key) => {
 /**
  * Clear all cache
  */
-export const clear = () => {
+export const clear = (): void => {
   Object.keys(cache).forEach((key) => delete cache[key]);
 };
 
 /**
  * Get cache size
- * @returns {number} - Number of items in cache
  */
-export const size = () => Object.keys(cache).length;
+export const size = (): number => Object.keys(cache).length;
 
 /**
  * Check if key exists and is not expired
- * @param {string} key - Cache key
- * @returns {boolean}
  */
-export const has = (key) => get(key) !== null;
+export const has = (key: string): boolean => get(key) !== null;

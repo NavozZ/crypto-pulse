@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { fetchCoinGeckoData, fetchBinanceData } from "../utils/marketService.js";
-import * as cacheModule from "../utils/cache.js";
+import { fetchCoinGeckoData, fetchBinanceData } from "../utils/marketService";
+import * as cacheModule from "../utils/cache";
 
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
 

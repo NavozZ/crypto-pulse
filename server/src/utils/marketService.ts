@@ -3,13 +3,17 @@ import axios from "axios";
 const COINGECKO_API_BASE = "https://api.coingecko.com/api/v3";
 const BINANCE_API_BASE = "https://api.binance.com/api/v3";
 
+interface MarketData {
+  price: number;
+  change_24h: number;
+  volume: number;
+  source: string;
+}
+
 /**
  * Fetch market data from CoinGecko API
- * @param {string} coin - Coin ID (e.g., 'bitcoin', 'ethereum')
- * @returns {Promise<{price: number, change_24h: number, volume: number, source: string}>}
- * @throws {Error} If API call fails
  */
-export const fetchCoinGeckoData = async (coin) => {
+export const fetchCoinGeckoData = async (coin: string): Promise<MarketData> => {
   try {
     const url = `${COINGECKO_API_BASE}/coins/${coin}/market_chart?vs_currency=usd&days=1`;
 
@@ -45,18 +49,15 @@ export const fetchCoinGeckoData = async (coin) => {
       source: "coingecko",
     };
   } catch (error) {
-    const message = error.response?.data?.status?.error_message || error.message;
+    const message = (error as any).response?.data?.status?.error_message || (error as Error).message;
     throw new Error(`CoinGecko API Error [${coin}]: ${message}`);
   }
 };
 
 /**
  * Fetch market data from Binance API
- * @param {string} symbol - Trading pair symbol (e.g., 'BTCUSDT', 'ETHUSDT')
- * @returns {Promise<{price: number, change_24h: number, volume: number, source: string}>}
- * @throws {Error} If API call fails
  */
-export const fetchBinanceData = async (symbol) => {
+export const fetchBinanceData = async (symbol: string): Promise<MarketData> => {
   try {
     const url = `${BINANCE_API_BASE}/ticker/24hr?symbol=${symbol}`;
 
@@ -81,18 +82,15 @@ export const fetchBinanceData = async (symbol) => {
       source: "binance",
     };
   } catch (error) {
-    const message = error.response?.data?.msg || error.message;
+    const message = (error as any).response?.data?.msg || (error as Error).message;
     throw new Error(`Binance API Error [${symbol}]: ${message}`);
   }
 };
 
 /**
  * Fetch and compare data from both APIs (useful for redundancy/verification)
- * @param {string} coin - CoinGecko coin ID
- * @param {string} symbol - Binance trading symbol
- * @returns {Promise<{coingecko: Object, binance: Object}>}
  */
-export const fetchMultipleSourceData = async (coin, symbol) => {
+export const fetchMultipleSourceData = async (coin: string, symbol: string) => {
   try {
     const [coingeckoData, binanceData] = await Promise.all([
       fetchCoinGeckoData(coin),
@@ -104,6 +102,6 @@ export const fetchMultipleSourceData = async (coin, symbol) => {
       binance: binanceData,
     };
   } catch (error) {
-    throw new Error(`Multi-source fetch failed: ${error.message}`);
+    throw new Error(`Multi-source fetch failed: ${(error as Error).message}`);
   }
 };
