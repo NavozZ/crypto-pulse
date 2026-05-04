@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Shield, Users, Activity, LogOut, BarChart2, Brain, RefreshCw } from "lucide-react";
 import axios from "axios";
+import { API_BASE } from "../api.js";
 
 const AdminDashboard = () => {
   const navigate  = useNavigate();
@@ -21,7 +22,7 @@ const AdminDashboard = () => {
 
   const fetchStats = async (token) => {
     try {
-      const { data } = await axios.get("http://localhost:5000/api/admin/stats", {
+      const { data } = await axios.get(`${API_BASE}/api/admin/stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setStats(data);

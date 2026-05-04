@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
+import { fetchCoinGeckoData, fetchBinanceData } from "../utils/marketService";
+import * as cacheModule from "../utils/cache";
 
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
 
 // Simple in-memory cache to respect CoinGecko free tier rate limits
-// (10-30 calls/min). Cache expires after 5 minutes.
+// (10-30 calls/min). Cache expires after 15 minutes on production.
 interface CacheEntry {
   data: unknown;
   expiry: number;
@@ -20,17 +22,15 @@ const getFromCache = (key: string): unknown | null => {
   return entry.data;
 };
 
-const setCache = (key: string, data: unknown, ttlMs = 5 * 60 * 1000) => {
+const setCache = (key: string, data: unknown, ttlMs = 15 * 60 * 1000) => {
   cache.set(key, { data, expiry: Date.now() + ttlMs });
 };
 
 // ─── GET /api/market/ohlc/:coinId ─────────────────────────────────────────
-// Returns transformed OHLC data ready for lightweight-charts + price stats
 export const getOHLCData = async (req: Request, res: Response) => {
   const { coinId } = req.params;
   const days = (req.query.days as string) || "30";
 
-  // Whitelist to prevent injection
   const allowed = ["bitcoin", "ethereum", "solana", "binancecoin", "ripple", "cardano"];
   if (!allowed.includes(coinId)) {
     return res.status(400).json({ message: "Invalid coin ID" });
@@ -38,7 +38,6 @@ export const getOHLCData = async (req: Request, res: Response) => {
 
   const cacheKey = `ohlc:${coinId}:${days}`;
 
-  // Return cached data if available
   const cached = getFromCache(cacheKey);
   if (cached) {
     return res.json(cached);
@@ -61,20 +60,18 @@ export const getOHLCData = async (req: Request, res: Response) => {
 
     const rawOhlc = (await ohlcResponse.json()) as number[][];
 
-    // Transform: [timestamp_ms, open, high, low, close] → lightweight-charts format
     const seen = new Set<number>();
     const ohlc = rawOhlc
       .map(([ts, open, high, low, close]) => ({
-        time:  Math.floor(ts / 1000),  // convert ms → seconds
+        time:  Math.floor(ts / 1000),
         open, high, low, close,
       }))
       .filter((point) => {
-        // Deduplicate timestamps (CoinGecko can return duplicates)
         if (seen.has(point.time)) return false;
         seen.add(point.time);
         return true;
       })
-      .sort((a, b) => a.time - b.time);  // ensure ascending order
+      .sort((a, b) => a.time - b.time);
 
     // ── Fetch current price stats ──────────────────────────────────
     const statsResponse = await fetch(
@@ -99,8 +96,8 @@ export const getOHLCData = async (req: Request, res: Response) => {
 
     const result = { ohlc, stats };
 
-    // Cache the result for 5 minutes
-    setCache(cacheKey, result);
+    // Cache for 15 minutes to avoid CoinGecko rate limits on production
+    setCache(cacheKey, result, 15 * 60 * 1000);
 
     return res.json(result);
 
@@ -109,6 +106,83 @@ export const getOHLCData = async (req: Request, res: Response) => {
     return res.status(500).json({
       message: "Failed to fetch market data",
       error:   (error as Error).message,
+    });
+  }
+};
+
+// ─── GET /api/market/data?coin=bitcoin ──────────────────────────────────────
+export const getMarketData = async (req: Request, res: Response) => {
+  const { coin } = req.query;
+
+  // Validate coin parameter
+  if (!coin || typeof coin !== "string") {
+    return res.status(400).json({ message: "Missing or invalid 'coin' query parameter" });
+  }
+
+  const allowed = ["bitcoin", "ethereum", "solana", "binancecoin", "ripple", "cardano"];
+  if (!allowed.includes(coin)) {
+    return res.status(400).json({ message: "Invalid coin ID" });
+  }
+
+  const cacheKey = `market:${coin}`;
+  let isCached = false;
+
+  try {
+    // ── Check cache first ────────────────────────────────────────────
+    const cachedData = cacheModule.get(cacheKey);
+    if (cachedData) {
+      isCached = true;
+      return res.json({ ...cachedData, cached: true });
+    }
+
+    let data;
+    let source = "unknown";
+
+    // ── Try CoinGecko first ──────────────────────────────────────────
+    try {
+      data = await fetchCoinGeckoData(coin);
+      source = "coingecko";
+    } catch (coingeckoError) {
+      console.warn(`⚠️  CoinGecko failed for ${coin}, falling back to Binance`);
+
+      // ── Fallback to Binance ──────────────────────────────────────
+      const coinToBinanceMap: Record<string, string> = {
+        bitcoin: "BTCUSDT",
+        ethereum: "ETHUSDT",
+        solana: "SOLUSDT",
+        binancecoin: "BNBUSDT",
+        ripple: "XRPUSDT",
+        cardano: "ADAUSDT",
+      };
+
+      const binanceSymbol = coinToBinanceMap[coin];
+      if (!binanceSymbol) {
+        throw new Error("No Binance mapping for coin");
+      }
+
+      data = await fetchBinanceData(binanceSymbol);
+      source = "binance";
+    }
+
+    // ── Cache result for 5 minutes ───────────────────────────────────
+    const response = {
+      coin,
+      price: data.price,
+      change_24h: data.change_24h,
+      volume: data.volume,
+      source,
+      cached: false,
+    };
+
+    cacheModule.set(cacheKey, response, 300); // 5-minute TTL
+
+    return res.json(response);
+
+  } catch (error) {
+    console.error(`❌ Market data fetch failed for ${coin}:`, (error as Error).message);
+    return res.status(500).json({
+      message: "Failed to fetch market data from all sources",
+      error: (error as Error).message,
     });
   }
 };
