@@ -28,6 +28,11 @@ export const registerUser = async (req: Request, res: Response) => {
       username: user.username,
       email:    user.email,
       role:     user.role,       // ← included so frontend can route correctly
+      subscription: user.subscription,
+      watchlist: user.watchlist || [],
+      favoriteCoins: user.favoriteCoins || [],
+      profileImage: user.profileImage || "",
+      settings: user.settings,
       token:    generateToken(String(user._id)),
     });
 
@@ -57,6 +62,11 @@ export const loginUser = async (req: Request, res: Response) => {
       username: user.username,
       email:    user.email,
       role:     user.role,       // ← included so frontend can route correctly
+      subscription: user.subscription,
+      watchlist: user.watchlist || [],
+      favoriteCoins: user.favoriteCoins || [],
+      profileImage: user.profileImage || "",
+      settings: user.settings,
       token:    generateToken(String(user._id)),
     });
 

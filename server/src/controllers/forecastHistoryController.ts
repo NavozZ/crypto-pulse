@@ -1,46 +1,51 @@
-/**
- * forecastHistoryController.ts
- * ────────────────────────────────────────────────────────────
- * Controller for forecast history endpoints
- * GET /api/forecast-history?coin=bitcoin - Get prediction history
- * GET /api/forecast-history/stats?coin=bitcoin - Get accuracy statistics
- */
-
-import { Request, Response } from "express";
+import { Response } from "express";
 import { getHistory, getAccuracyStats } from "../utils/forecastHistoryService";
+import { AuthRequest } from "../middleware/authMiddleware";
 
 const ALLOWED_COINS = ["bitcoin", "ethereum", "solana", "binancecoin", "ripple", "cardano"];
+const ALLOWED_STATUSES = ["pending", "accurate", "partial", "failed"];
+const ALLOWED_DIRECTIONS = ["bullish", "bearish"];
 
-// ── GET /api/forecast-history?coin=bitcoin ─────────────────────────────────
-export const getForecastHistory = async (req: Request, res: Response) => {
+export const getForecastHistory = async (req: AuthRequest, res: Response) => {
   try {
-    const { coin, limit } = req.query;
+    const {
+      coin,
+      limit = "12",
+      page = "1",
+      timeframe,
+      direction,
+      status,
+    } = req.query;
 
-    // Validate coin parameter
-    if (!coin || typeof coin !== "string") {
-      return res.status(400).json({ message: "Missing or invalid 'coin' query parameter" });
-    }
-
-    if (!ALLOWED_COINS.includes(coin.toLowerCase())) {
+    if (coin && (typeof coin !== "string" || !ALLOWED_COINS.includes(coin.toLowerCase()))) {
       return res.status(400).json({ message: "Invalid coin ID" });
     }
 
-    // Parse limit (default 30, max 365)
-    let limitNum = 30;
-    if (limit) {
-      limitNum = Math.min(parseInt(limit as string) || 30, 365);
+    if (direction && (typeof direction !== "string" || !ALLOWED_DIRECTIONS.includes(direction))) {
+      return res.status(400).json({ message: "Invalid direction filter" });
     }
 
-    // Get history with automatic accuracy updates
-    const history = await getHistory(coin.toLowerCase(), limitNum, true);
+    if (status && (typeof status !== "string" || !ALLOWED_STATUSES.includes(status))) {
+      return res.status(400).json({ message: "Invalid status filter" });
+    }
 
-    return res.json({
-      coin: coin.toLowerCase(),
-      total: history.length,
-      history: history,
-    });
+    const payload = await getHistory(
+      {
+        userId: String(req.user?._id || ""),
+        coin: typeof coin === "string" ? coin.toLowerCase() : undefined,
+        limit: Math.min(50, Math.max(1, parseInt(String(limit), 10) || 12)),
+        page: Math.max(1, parseInt(String(page), 10) || 1),
+        timeframe: timeframe ? parseInt(String(timeframe), 10) : undefined,
+        predictionType: typeof direction === "string" ? (direction as "bullish" | "bearish") : undefined,
+        status: typeof status === "string"
+          ? (status as "pending" | "accurate" | "partial" | "failed")
+          : undefined,
+      },
+      true
+    );
+
+    return res.json(payload);
   } catch (error) {
-    console.error("❌ Forecast history error:", (error as Error).message);
     return res.status(500).json({
       message: "Failed to fetch forecast history",
       error: (error as Error).message,
@@ -48,32 +53,24 @@ export const getForecastHistory = async (req: Request, res: Response) => {
   }
 };
 
-// ── GET /api/forecast-history/stats?coin=bitcoin ────────────────────────────
-export const getAccuracyStatistics = async (req: Request, res: Response) => {
+export const getAccuracyStatistics = async (req: AuthRequest, res: Response) => {
   try {
     const { coin } = req.query;
-
-    // Validate coin parameter
-    if (!coin || typeof coin !== "string") {
-      return res.status(400).json({ message: "Missing or invalid 'coin' query parameter" });
-    }
-
-    if (!ALLOWED_COINS.includes(coin.toLowerCase())) {
+    if (coin && (typeof coin !== "string" || !ALLOWED_COINS.includes(coin.toLowerCase()))) {
       return res.status(400).json({ message: "Invalid coin ID" });
     }
 
-    // Get accuracy statistics
-    const stats = await getAccuracyStats(coin.toLowerCase());
+    const stats = await getAccuracyStats(
+      typeof coin === "string" ? coin.toLowerCase() : undefined,
+      String(req.user?._id || "")
+    );
 
-    return res.json({
-      coin: coin.toLowerCase(),
-      ...stats,
-    });
+    return res.json(stats);
   } catch (error) {
-    console.error("❌ Accuracy stats error:", (error as Error).message);
     return res.status(500).json({
       message: "Failed to fetch accuracy statistics",
       error: (error as Error).message,
     });
   }
 };
+

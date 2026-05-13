@@ -15,15 +15,7 @@ import SentimentGauge     from "../components/dashboard/SentimentGauge";
 import TechnicalIndicators from "../components/dashboard/TechnicalIndicators";
 import ForecastAccuracy   from "../components/dashboard/ForecastAccuracy";
 import { API_BASE } from "../api.js";
-
-export const ASSETS = [
-  { id: "bitcoin",     symbol: "BTC", name: "Bitcoin",  icon: "₿", color: "#F7931A" },
-  { id: "ethereum",    symbol: "ETH", name: "Ethereum", icon: "Ξ", color: "#627EEA" },
-  { id: "solana",      symbol: "SOL", name: "Solana",   icon: "◎", color: "#9945FF" },
-  { id: "binancecoin", symbol: "BNB", name: "BNB",      icon: "⬡", color: "#F3BA2F" },
-  { id: "ripple",      symbol: "XRP", name: "XRP",      icon: "✕", color: "#346AA9" },
-  { id: "cardano",     symbol: "ADA", name: "Cardano",  icon: "₳", color: "#0033AD" },
-];
+import { COINS } from "../constants/coins";
 
 const TIME_PERIODS = [
   { label: "7D",  value: "7"   },
@@ -35,7 +27,7 @@ const TIME_PERIODS = [
 const Dashboard = () => {
   const navigate = useNavigate();
   const [userInfo,         setUserInfo]         = useState(null);
-  const [selectedAsset,    setSelectedAsset]    = useState(ASSETS[0]);
+  const [selectedAsset,    setSelectedAsset]    = useState(COINS[0]);
   const [showForecast,     setShowForecast]     = useState(false);
   const [showMA,           setShowMA]           = useState(true);
   const [showAccuracy,     setShowAccuracy]     = useState(false);
@@ -190,7 +182,7 @@ const Dashboard = () => {
       <div className="flex flex-1 overflow-hidden">
 
         {/* Asset Sidebar */}
-        <AssetSidebar assets={ASSETS} selectedAsset={selectedAsset} onAssetChange={handleAssetChange} />
+        <AssetSidebar assets={COINS} selectedAsset={selectedAsset} onAssetChange={handleAssetChange} />
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-4 space-y-4 min-w-0">
@@ -383,6 +375,8 @@ const Dashboard = () => {
             <div className="space-y-1.5">
               {[
                 { to: "/macro",     icon: BarChart2, label: "Macro Dashboard",   note: "CPI · Fed Rate · DXY" },
+                { to: "/forecast-history", icon: Target, label: "Forecast History", note: "Prediction outcomes" },
+                { to: "/ai-explanation", icon: Brain, label: "AI Explanation", note: "Signal reasoning" },
                 { to: "/",          icon: Home,      label: "Landing Page",       note: "Back to home"         },
               ].map(({ to, icon: Icon, label, note }) => (
                 <Link key={to} to={to}
