@@ -13,6 +13,16 @@ const COINS = [
   { id: "cardano",  symbol: "ADA", name: "Cardano",  icon: "₳", color: "#0033AD" },
 ];
 
+// Demo data for when API fails
+const DEMO_PRICES = {
+  bitcoin: { usd: 45230, usd_24h_change: 2.5, usd_market_cap: 8.82e12, source: "demo", cached: false },
+  ethereum: { usd: 2850, usd_24h_change: 1.8, usd_market_cap: 3.42e11, source: "demo", cached: false },
+  solana: { usd: 142.50, usd_24h_change: -0.5, usd_market_cap: 6.54e10, source: "demo", cached: false },
+  binancecoin: { usd: 610.30, usd_24h_change: 3.2, usd_market_cap: 9.32e10, source: "demo", cached: false },
+  ripple: { usd: 2.18, usd_24h_change: 1.2, usd_market_cap: 1.18e11, source: "demo", cached: false },
+  cardano: { usd: 0.98, usd_24h_change: -1.5, usd_market_cap: 3.53e10, source: "demo", cached: false },
+};
+
 const formatPrice = (price) => {
   if (!price) return "—";
   if (price >= 1000) return "$" + price.toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -32,36 +42,50 @@ const LivePrices = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [isDemo, setIsDemo]   = useState(false);
 
   const fetchPrices = async () => {
     try {
       setError(null);
+      setIsDemo(false);
       const priceData = {};
 
       const fetchPromises = COINS.map((coin) =>
         axios
-          .get(`${API_BASE}/api/market/data?coin=${coin.id}`)
+          .get(`${API_BASE}/api/market/data?coin=${coin.id}`, { timeout: 8000 })
           .then((res) => {
+            console.log(`✅ Fetched ${coin.id}:`, res.data);
             priceData[coin.id] = {
               usd: res.data.price,
               usd_24h_change: res.data.change_24h,
-              usd_market_cap: res.data.volume,
+              usd_market_cap: res.data.volume || 0,
               source: res.data.source,
               cached: res.data.cached,
             };
           })
           .catch((err) => {
-            console.warn(`Failed to fetch ${coin.id}:`, err.message);
-            priceData[coin.id] = null;
+            console.error(`❌ Failed to fetch ${coin.id}:`, err.message);
+            // Use demo data as fallback
+            priceData[coin.id] = DEMO_PRICES[coin.id];
           })
       );
 
       await Promise.all(fetchPromises);
+      
+      // Check if we got any real data (not all demo)
+      const realDataCount = Object.values(priceData).filter(d => d?.source !== "demo").length;
+      if (realDataCount === 0) {
+        setIsDemo(true);
+        console.warn("⚠️ Using demo data — API unavailable");
+      }
+      
       setPrices(priceData);
       setLastUpdated(new Date());
     } catch (err) {
       console.error("Error fetching prices:", err.message);
-      setError("Unable to fetch market prices. Please try again.");
+      // Fallback to demo data
+      setPrices(DEMO_PRICES);
+      setIsDemo(true);
     } finally {
       setLoading(false);
     }
@@ -104,9 +128,13 @@ const LivePrices = () => {
             >
               <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
             </button>
-            <span className="flex items-center gap-1.5 text-xs text-green-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              Live
+            <span className={`flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${
+              isDemo 
+                ? "bg-yellow-500/10 text-yellow-400" 
+                : "text-green-400 bg-green-500/10"
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${isDemo ? "bg-yellow-400 animate-pulse" : "bg-green-400 animate-pulse"}`} />
+              {isDemo ? "Demo Data" : "Live"}
             </span>
           </div>
         </motion.div>

@@ -4,8 +4,10 @@ import * as cacheModule from "../utils/cache";
 
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
 
-// Simple in-memory cache to respect CoinGecko free tier rate limits
-// (10-30 calls/min). Cache expires after 15 minutes on production.
+// Caching strategy:
+// - Primary: Binance API (1200 req/min - unlimited effectively)
+// - Secondary: CoinGecko API (30 req/min fallback)
+// - Cache TTL: 5 minutes on both APIs to minimize external calls
 interface CacheEntry {
   data: unknown;
   expiry: number;
@@ -125,43 +127,49 @@ export const getMarketData = async (req: Request, res: Response) => {
   }
 
   const cacheKey = `market:${coin}`;
-  let isCached = false;
 
   try {
     // ── Check cache first ────────────────────────────────────────────
     const cachedData = cacheModule.get(cacheKey);
     if (cachedData) {
-      isCached = true;
       return res.json({ ...cachedData, cached: true });
     }
 
     let data;
     let source = "unknown";
 
-    // ── Try CoinGecko first ──────────────────────────────────────────
+    const coinToBinanceMap: Record<string, string> = {
+      bitcoin: "BTCUSDT",
+      ethereum: "ETHUSDT",
+      solana: "SOLUSDT",
+      binancecoin: "BNBUSDT",
+      ripple: "XRPUSDT",
+      cardano: "ADAUSDT",
+    };
+
+    const binanceSymbol = coinToBinanceMap[coin];
+
+    // ── Try Binance FIRST (Primary API - 1200 req/min) ────────────────
     try {
-      data = await fetchCoinGeckoData(coin);
-      source = "coingecko";
-    } catch (coingeckoError) {
-      console.warn(`⚠️  CoinGecko failed for ${coin}, falling back to Binance`);
-
-      // ── Fallback to Binance ──────────────────────────────────────
-      const coinToBinanceMap: Record<string, string> = {
-        bitcoin: "BTCUSDT",
-        ethereum: "ETHUSDT",
-        solana: "SOLUSDT",
-        binancecoin: "BNBUSDT",
-        ripple: "XRPUSDT",
-        cardano: "ADAUSDT",
-      };
-
-      const binanceSymbol = coinToBinanceMap[coin];
       if (!binanceSymbol) {
         throw new Error("No Binance mapping for coin");
       }
-
       data = await fetchBinanceData(binanceSymbol);
       source = "binance";
+      console.log(`✅ Market data from Binance for ${coin}`);
+    } catch (binanceError) {
+      console.warn(`⚠️  Binance failed for ${coin} (${(binanceError as Error).message}), falling back to CoinGecko`);
+
+      // ── Fallback to CoinGecko (Secondary API) ──────────────────────
+      try {
+        data = await fetchCoinGeckoData(coin);
+        source = "coingecko";
+        console.log(`✅ Market data from CoinGecko for ${coin} (fallback)`);
+      } catch (coingeckoError) {
+        throw new Error(
+          `All APIs failed: Binance [${(binanceError as Error).message}], CoinGecko [${(coingeckoError as Error).message}]`
+        );
+      }
     }
 
     // ── Cache result for 5 minutes ───────────────────────────────────

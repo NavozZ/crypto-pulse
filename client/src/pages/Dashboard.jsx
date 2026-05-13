@@ -52,8 +52,7 @@ const Dashboard = () => {
     setLoading(true); setError(null);
     try {
       const { data } = await axios.get(
-        `${API_BASE}/api/market/ohlc/${selectedAsset.id}?days=${days}`,
-        { headers: { Authorization: `Bearer ${userInfo.token}` } }
+        `${API_BASE}/api/market/ohlc/${selectedAsset.id}?days=${days}`
       );
       setOhlcData(data.ohlc);
       setPriceStats(data.stats);
@@ -80,8 +79,7 @@ const Dashboard = () => {
     setSentimentLoading(true);
     try {
       const { data } = await axios.get(
-        `${API_BASE}/api/sentiment/${selectedAsset.id}`,
-        { headers: { Authorization: `Bearer ${userInfo.token}` } }
+        `${API_BASE}/api/sentiment/${selectedAsset.id}`
       );
       setSentimentData(data);
     } catch { /* silent */ }
