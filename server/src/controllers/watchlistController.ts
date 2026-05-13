@@ -15,11 +15,17 @@ const fetchWatchlistPrices = async (coins: string[]) => {
   if (coins.length === 0) return {};
   const ids = coins.join(",");
   const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`;
-  const response = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!response.ok) {
-    throw new Error(`CoinGecko price fetch failed with status ${response.status}`);
+  try {
+    const response = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!response.ok) {
+      console.warn(`CoinGecko price fetch returned ${response.status}, returning empty prices`);
+      return {};
+    }
+    return response.json();
+  } catch (err) {
+    console.warn(`CoinGecko price fetch error: ${(err as Error).message}, returning empty prices`);
+    return {};
   }
-  return response.json();
 };
 
 export const getWatchlist = async (req: AuthRequest, res: Response) => {

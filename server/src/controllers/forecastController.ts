@@ -194,8 +194,12 @@ export const getForecastExplanation = async (req: Request, res: Response) => {
       ? await sentimentResponse.json() as any
       : { compound: 0, label: "Neutral" };
 
-    const first = forecastData.forecast?.[0];
-    const last = forecastData.forecast?.[forecastData.forecast.length - 1];
+    if (!forecastData.forecast || !Array.isArray(forecastData.forecast) || forecastData.forecast.length === 0) {
+      return res.status(400).json({ message: "No forecast data available for this coin" });
+    }
+
+    const first = forecastData.forecast[0];
+    const last = forecastData.forecast[forecastData.forecast.length - 1];
     const direction: "bullish" | "bearish" =
       Number(last?.yhat || 0) >= Number(first?.yhat || 0) ? "bullish" : "bearish";
 
