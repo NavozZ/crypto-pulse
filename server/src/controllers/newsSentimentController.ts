@@ -98,16 +98,25 @@ export const getNewsAndSentiment = async (req: Request, res: Response) => {
       ? dedupedNews.filter((item) => item.title.toLowerCase().includes(search))
       : dedupedNews;
 
-    const aiEngineUrl = process.env.AI_ENGINE_URL || "http://localhost:8000";
-    const sentimentResponse = await fetch(`${aiEngineUrl}/sentiment/${coinId}`, {
-      signal: AbortSignal.timeout(30000),
-    });
+    // Attempt to fetch sentiment from AI engine, but gracefully degrade if unavailable
+    let sentiment = { compound: 0, label: "Neutral", positive: 0, negative: 0, neutral: 1, post_count: 0 };
+    try {
+      const aiEngineUrl = process.env.AI_ENGINE_URL || "http://localhost:8000";
+      const sentimentResponse = await fetch(`${aiEngineUrl}/sentiment/${coinId}`, {
+        signal: AbortSignal.timeout(15000), // Reduced to 15s to fail faster if engine is down
+      });
 
-    if (!sentimentResponse.ok) {
-      return res.status(502).json({ message: "Sentiment engine unavailable" });
+      if (sentimentResponse.ok) {
+        sentiment = await sentimentResponse.json() as any;
+        console.log(`✅ Sentiment from AI engine for ${coinId}`);
+      } else {
+        console.warn(`⚠️ AI engine returned ${sentimentResponse.status} for ${coinId}, using defaults`);
+      }
+    } catch (error) {
+      console.warn(`⚠️ AI engine unavailable for ${coinId}: ${(error as Error).message}, using neutral sentiment`);
+      // Continue with default neutral sentiment instead of returning 502
     }
 
-    const sentiment = await sentimentResponse.json() as any;
     const fearGreed = computeFearGreed(sentiment.compound || 0);
 
     return res.json({
@@ -130,6 +139,7 @@ export const getNewsAndSentiment = async (req: Request, res: Response) => {
       news: filteredNews.slice(0, 40),
     });
   } catch (error) {
+    console.error(`❌ News sentiment fetch failed for ${coinId}:`, (error as Error).message);
     return res.status(500).json({
       message: "Failed to fetch news and sentiment",
       error: (error as Error).message,

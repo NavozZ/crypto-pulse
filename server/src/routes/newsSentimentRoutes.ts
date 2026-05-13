@@ -1,10 +1,10 @@
 import express from "express";
-import { protect } from "../middleware/authMiddleware";
 import { getNewsAndSentiment } from "../controllers/newsSentimentController";
 
 const router = express.Router();
 
-router.get("/:coinId", protect, getNewsAndSentiment);
+// Public endpoint — sentiment data is non-sensitive market information
+router.get("/:coinId", getNewsAndSentiment);
 
 export default router;
 
