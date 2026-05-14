@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { User, Mail, Lock, Loader2 } from "lucide-react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import { API_BASE } from "../api.js";
 
 const Register = () => {
   const [formData, setFormData] = useState({ username: "", email: "", password: "" });
@@ -16,7 +17,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post("http://localhost:5000/api/auth/register", formData);
+      const { data } = await axios.post(`${API_BASE}/api/auth/register`, formData);
 
       // Store user info (includes role) in localStorage
       localStorage.setItem("userInfo", JSON.stringify(data));
@@ -91,7 +92,7 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold hover:shadow-[0_0_20px_rgba(168,85,247,0.6)] transition flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full py-3 rounded-xl bg-linear-to-r from-purple-500 to-pink-500 text-white font-bold hover:shadow-[0_0_20px_rgba(168,85,247,0.6)] transition flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : "Create Account"}
           </button>

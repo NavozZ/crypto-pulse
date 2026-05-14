@@ -1,14 +1,10 @@
 import { Request, Response } from "express";
-import path from "path";
-import { runPythonScript } from "./forecastController";
-
-const AI_ENGINE_PATH = path.join(__dirname, "../../../ai-engine");
-const PYTHON_SCRIPT  = path.join(AI_ENGINE_PATH, "vader_sentiment.py");
 
 const ALLOWED_COINS = ["bitcoin", "ethereum", "solana", "binancecoin", "ripple", "cardano"];
 
-// Simple in-memory cache — sentiment doesn't need to refresh every request
-// VADER scoring over Reddit/Twitter takes ~5-10 seconds, so we cache for 15 mins
+const getAIEngineURL = () => process.env.AI_ENGINE_URL || "http://localhost:8000";
+
+// Simple in-memory cache — 15 min TTL
 interface CacheEntry { data: unknown; expiry: number; }
 const cache = new Map<string, CacheEntry>();
 
@@ -20,23 +16,32 @@ export const getSentiment = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Invalid coin ID" });
   }
 
-  // Return cached result if available (15 min TTL)
+  // Return cached result if available
   const cached = cache.get(coinId);
   if (cached && Date.now() < cached.expiry) {
     return res.json(cached.data);
   }
 
   try {
-    const result = await runPythonScript(PYTHON_SCRIPT, [coinId]);
+    const url = `${getAIEngineURL()}/sentiment/${coinId}`;
+    const response = await fetch(url, { signal: AbortSignal.timeout(60000) }); // 1 min timeout
+
+    if (!response.ok) {
+      const err = await response.json() as { error?: string };
+      return res.status(500).json({ message: "AI engine error", error: err.error });
+    }
+
+    const data = await response.json();
 
     // Cache for 15 minutes
-    cache.set(coinId, { data: result, expiry: Date.now() + 15 * 60 * 1000 });
+    cache.set(coinId, { data, expiry: Date.now() + 15 * 60 * 1000 });
 
-    return res.json(result);
+    return res.json(data);
+
   } catch (error) {
-    console.error("❌ VADER sentiment error:", (error as Error).message);
+    console.error("❌ Sentiment HTTP error:", (error as Error).message);
     return res.status(500).json({
-      message: "Sentiment engine error",
+      message: "Sentiment engine unavailable",
       error:   (error as Error).message,
     });
   }

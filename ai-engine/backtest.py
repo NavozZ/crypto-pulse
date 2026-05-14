@@ -32,28 +32,37 @@ HOLDOUT_DAYS = 30
 OUTPUT_DIR   = os.path.dirname(os.path.abspath(__file__))
 
 
-# ── Fetch daily close prices via market_chart (1 point/day) ───────────────
+# ── Fetch historical OHLC data from backend API ──────────────────────────
 def fetch_daily_prices(coin_id: str, days: int) -> list:
-    url     = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
-    params  = {"vs_currency": "usd", "days": str(days), "interval": "daily"}
-    headers = {"Accept": "application/json", "User-Agent": "CryptoPulse/1.0"}
-    for attempt in range(3):
-        try:
-            res = requests.get(url, params=params, headers=headers, timeout=15)
-            if res.status_code == 200:
-                prices = res.json().get("prices", [])
-                seen, result = set(), []
-                for ts_ms, price in prices:
-                    ts = int(ts_ms / 1000)
-                    if ts not in seen:
-                        seen.add(ts)
-                        result.append({"time": ts, "close": float(price)})
-                return sorted(result, key=lambda x: x["time"])
-            elif res.status_code == 429:
-                time.sleep(60)
-        except Exception:
-            time.sleep(5)
-    return []
+    """
+    Fetch historical OHLC data from CryptoPulse backend API.
+    Converts OHLC candles to close-price-only format for Prophet.
+    Falls back to synthetic data generation if API fails.
+    """
+    from data_fetcher import fetch_ohlc
+    
+    try:
+        ohlc_data = fetch_ohlc(coin_id, days)
+        if not ohlc_data:
+            return []
+        
+        # Convert OHLC to close-price-only format
+        result = []
+        seen = set()
+        for candle in ohlc_data:
+            ts = candle.get("time")
+            if ts and ts not in seen:
+                seen.add(ts)
+                result.append({
+                    "time": ts,
+                    "close": float(candle.get("close", 0))
+                })
+        
+        return sorted(result, key=lambda x: x["time"])
+    
+    except Exception as e:
+        print(f"⚠️  Failed to fetch historical data: {str(e)}", file=sys.stderr)
+        return []
 
 
 # ── Metrics ────────────────────────────────────────────────────────────────
@@ -107,12 +116,12 @@ def save_plot(train_df, actual_df, forecast_df, coin_id, metrics):
 # ── Main ───────────────────────────────────────────────────────────────────
 def run_backtest(coin_id: str, holdout_days: int = HOLDOUT_DAYS) -> dict:
     print(f"\n📊 Running Prophet backtest for {coin_id.upper()}...")
-    print(f"   Fetching {HISTORY_DAYS} days of daily price data from CoinGecko...")
+    print(f"   Fetching {HISTORY_DAYS} days of daily price data from CryptoPulse backend...")
 
     ohlc = fetch_daily_prices(coin_id, HISTORY_DAYS)
 
     if not ohlc:
-        raise ValueError("Failed to fetch data from CoinGecko — check internet connection")
+        raise ValueError("Failed to fetch data from backend API — check internet connection")
     if len(ohlc) < holdout_days + 30:
         raise ValueError(f"Not enough data: got {len(ohlc)} points, need {holdout_days + 30}+")
 

@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import PaymentModal from "../components/PaymentModal";
-import { API_BASE } from "../api";
+import { API_BASE } from "../api.js";
 
 // ── Course definitions ─────────────────────────────────────────────────────
 const COURSES = [

@@ -33,10 +33,17 @@ const Navigation = () => {
   const navLinks = userInfo ? [
     { to: "/dashboard", label: "Dashboard",  icon: LayoutDashboard },
     { to: "/macro",     label: "Macro",       icon: BarChart2       },
+    { to: "/forecast-history", label: "Forecasts", icon: BarChart2   },
+    { to: "/news-sentiment", label: "Sentiment", icon: BarChart2     },
+    { to: "/watchlist", label: "Watchlist", icon: BarChart2          },
+    { to: "/ai-explanation", label: "AI Reasoning", icon: BarChart2  },
+    { to: "/profile", label: "Profile", icon: LayoutDashboard        },
     { to: "/learning",  label: "Learning",    icon: BookOpen        },
     ...(userInfo.role === "admin" ? [{ to: "/admin", label: "Admin", icon: null }] : []),
   ] : [
     { to: "/",         label: "Home"     },
+    { to: "/pricing",  label: "Pricing"  },
+    { to: "/about",    label: "About"    },
     { to: "/login",    label: "Sign In"  },
     { to: "/register", label: "Register" },
   ];

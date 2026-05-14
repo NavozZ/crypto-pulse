@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,15 +13,9 @@ import AssetSidebar       from "../components/dashboard/AssetSidebar";
 import StatsPanel         from "../components/dashboard/StatsPanel";
 import SentimentGauge     from "../components/dashboard/SentimentGauge";
 import TechnicalIndicators from "../components/dashboard/TechnicalIndicators";
-
-export const ASSETS = [
-  { id: "bitcoin",     symbol: "BTC", name: "Bitcoin",  icon: "₿", color: "#F7931A" },
-  { id: "ethereum",    symbol: "ETH", name: "Ethereum", icon: "Ξ", color: "#627EEA" },
-  { id: "solana",      symbol: "SOL", name: "Solana",   icon: "◎", color: "#9945FF" },
-  { id: "binancecoin", symbol: "BNB", name: "BNB",      icon: "⬡", color: "#F3BA2F" },
-  { id: "ripple",      symbol: "XRP", name: "XRP",      icon: "✕", color: "#346AA9" },
-  { id: "cardano",     symbol: "ADA", name: "Cardano",  icon: "₳", color: "#0033AD" },
-];
+import ForecastAccuracy   from "../components/dashboard/ForecastAccuracy";
+import { API_BASE } from "../api.js";
+import { COINS } from "../constants/coins";
 
 const TIME_PERIODS = [
   { label: "7D",  value: "7"   },
@@ -32,7 +27,7 @@ const TIME_PERIODS = [
 const Dashboard = () => {
   const navigate = useNavigate();
   const [userInfo,         setUserInfo]         = useState(null);
-  const [selectedAsset,    setSelectedAsset]    = useState(ASSETS[0]);
+  const [selectedAsset,    setSelectedAsset]    = useState(COINS[0]);
   const [showForecast,     setShowForecast]     = useState(false);
   const [showMA,           setShowMA]           = useState(true);
   const [showAccuracy,     setShowAccuracy]     = useState(false);
@@ -57,8 +52,7 @@ const Dashboard = () => {
     setLoading(true); setError(null);
     try {
       const { data } = await axios.get(
-        `http://localhost:5000/api/market/ohlc/${selectedAsset.id}?days=${days}`,
-        { headers: { Authorization: `Bearer ${userInfo.token}` } }
+        `${API_BASE}/api/market/ohlc/${selectedAsset.id}?days=${days}`
       );
       setOhlcData(data.ohlc);
       setPriceStats(data.stats);
@@ -72,7 +66,7 @@ const Dashboard = () => {
     setForecastLoading(true);
     try {
       const { data } = await axios.get(
-        `http://localhost:5000/api/forecast/${selectedAsset.id}`,
+        `${API_BASE}/api/forecast/${selectedAsset.id}`,
         { headers: { Authorization: `Bearer ${userInfo.token}` } }
       );
       setForecastData(data.forecast);
@@ -85,8 +79,7 @@ const Dashboard = () => {
     setSentimentLoading(true);
     try {
       const { data } = await axios.get(
-        `http://localhost:5000/api/sentiment/${selectedAsset.id}`,
-        { headers: { Authorization: `Bearer ${userInfo.token}` } }
+        `${API_BASE}/api/sentiment/${selectedAsset.id}`
       );
       setSentimentData(data);
     } catch { /* silent */ }
@@ -156,7 +149,7 @@ const Dashboard = () => {
           </div>
 
           {/* Right: actions */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <span className="hidden sm:flex items-center gap-1 text-xs text-green-400">
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
               <Wifi size={10} /> Live
@@ -187,7 +180,7 @@ const Dashboard = () => {
       <div className="flex flex-1 overflow-hidden">
 
         {/* Asset Sidebar */}
-        <AssetSidebar assets={ASSETS} selectedAsset={selectedAsset} onAssetChange={handleAssetChange} />
+        <AssetSidebar assets={COINS} selectedAsset={selectedAsset} onAssetChange={handleAssetChange} />
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-4 space-y-4 min-w-0">
@@ -278,7 +271,7 @@ const Dashboard = () => {
                 exit={{ opacity: 0, y: -5 }}
                 className="flex items-center gap-2 text-xs text-purple-300 bg-purple-500/8 border border-purple-500/20 rounded-xl px-4 py-2.5"
               >
-                <Activity size={12} className="flex-shrink-0" />
+                <Activity size={12} className="shrink-0" />
                 {forecastLoading
                   ? "Facebook Prophet model running… 10–20 seconds"
                   : forecastData
@@ -293,12 +286,12 @@ const Dashboard = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative backdrop-blur-xl bg-white/[0.03] border border-white/10 rounded-2xl p-4 overflow-hidden"
+            className="relative backdrop-blur-xl bg-white/3 border border-white/10 rounded-2xl p-4 overflow-hidden"
           >
             <div className="absolute inset-0 rounded-2xl opacity-10 pointer-events-none"
               style={{ background: `radial-gradient(circle at 50% 100%, ${selectedAsset.color}40, transparent 60%)` }} />
             {error ? (
-              <div className="h-[420px] flex flex-col items-center justify-center gap-3 text-red-400">
+              <div className="h-105 flex flex-col items-center justify-center gap-3 text-red-400">
                 <span className="text-4xl">⚠</span>
                 <p className="text-sm">{error}</p>
                 <button onClick={fetchMarketData} className="text-xs text-purple-400 hover:underline mt-1">Retry</button>
@@ -318,16 +311,32 @@ const Dashboard = () => {
           {/* Stats Panel */}
           {priceStats && <StatsPanel stats={priceStats} asset={selectedAsset} />}
 
-          {/* Bottom nav shortcuts */}
+          {/* Forecast Accuracy Section */}
+          <AnimatePresence>
+            {showAccuracy && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="relative backdrop-blur-xl bg-white/3 border border-white/10 rounded-2xl p-6 overflow-hidden"
+              >
+                <div className="absolute inset-0 rounded-2xl opacity-5 pointer-events-none"
+                  style={{ background: `radial-gradient(circle at 50% 50%, #3b82f650, transparent 60%)` }} />
+                <div className="relative">
+                  <ForecastAccuracy selectedAsset={selectedAsset} userInfo={userInfo} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <div className="flex flex-wrap gap-3 pt-1">
             <Link to="/macro"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 hover:border-purple-500/40 hover:bg-purple-500/5 transition text-sm text-gray-400 hover:text-white">
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/3 border border-white/10 hover:border-purple-500/40 hover:bg-purple-500/5 transition text-sm text-gray-400 hover:text-white">
               <BarChart2 size={14} className="text-purple-400" />
               Macro Dashboard
               <ChevronRight size={12} className="text-gray-600" />
             </Link>
             <Link to="/"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/20 transition text-sm text-gray-400 hover:text-white">
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/3 border border-white/10 hover:border-white/20 transition text-sm text-gray-400 hover:text-white">
               <Home size={14} />
               Back to Home
               <ChevronRight size={12} className="text-gray-600" />
@@ -336,7 +345,7 @@ const Dashboard = () => {
         </main>
 
         {/* Right Sidebar */}
-        <aside className="w-72 p-3 space-y-3 overflow-y-auto border-l border-white/10 hidden xl:flex xl:flex-col flex-shrink-0">
+        <aside className="w-72 p-3 space-y-3 overflow-y-auto border-l border-white/10 hidden xl:flex xl:flex-col shrink-0">
 
           {/* Technical Analysis */}
           <TechnicalIndicators ohlcData={ohlcData} asset={selectedAsset} />
@@ -356,7 +365,7 @@ const Dashboard = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
-            className="backdrop-blur-xl bg-white/[0.03] border border-white/10 rounded-2xl p-4"
+            className="backdrop-blur-xl bg-white/3 border border-white/10 rounded-2xl p-4"
           >
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
               Quick Access
@@ -364,6 +373,8 @@ const Dashboard = () => {
             <div className="space-y-1.5">
               {[
                 { to: "/macro",     icon: BarChart2, label: "Macro Dashboard",   note: "CPI · Fed Rate · DXY" },
+                { to: "/forecast-history", icon: Target, label: "Forecast History", note: "Prediction outcomes" },
+                { to: "/ai-explanation", icon: Brain, label: "AI Explanation", note: "Signal reasoning" },
                 { to: "/",          icon: Home,      label: "Landing Page",       note: "Back to home"         },
               ].map(({ to, icon: Icon, label, note }) => (
                 <Link key={to} to={to}
